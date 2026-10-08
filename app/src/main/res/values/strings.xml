@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI APN Connect</string>
+    <string name="tagline">All your free AI keys, one chat</string>
+
+    <!-- Navigation -->
+    <string name="nav_chat">Chat</string>
+    <string name="nav_keys">Keys</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Chat -->
+    <string name="chat_title">Chat</string>
+    <string name="chat_hint">Message the AI…</string>
+    <string name="chat_empty_title">No messages yet</string>
+    <string name="chat_empty_body">Pick a provider and say something. Every answer is free if you use a free key.</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_stop">Stop</string>
+    <string name="chat_regenerate">Regenerate</string>
+    <string name="chat_copy">Copy</string>
+    <string name="chat_copied">Copied</string>
+    <string name="chat_clear">Clear chat</string>
+    <string name="chat_new">New chat</string>
+    <string name="chat_attach">Attach image</string>
+    <string name="chat_thinking">Thinking…</string>
+    <string name="chat_auto_fallback">Auto fallback</string>
+    <string name="chat_auto_fallback_desc">If a provider fails or hits its rate limit, the next one is used automatically.</string>
+    <string name="chat_vision_hint">Vision model: you can attach an image.</string>
+    <string name="chat_no_key">No API key yet</string>
+    <string name="chat_no_key_body">Add a free key in the Keys tab, or turn on a no-key provider.</string>
+    <string name="chat_open_keys">Open Keys</string>
+    <string name="chat_failed">Failed</string>
+    <string name="chat_answered_by">Answered by %1$s</string>
+    <string name="chat_fell_back_to">Switched to %1$s</string>
+
+    <!-- Keys -->
+    <string name="keys_title">API Keys</string>
+    <string name="keys_intro">Add the free keys you own. They are encrypted on this device with the Android keystore and never leave it except inside the request to the provider.</string>
+    <string name="keys_empty">No keys saved yet</string>
+    <string name="keys_add">Add key</string>
+    <string name="keys_edit">Edit key</string>
+    <string name="keys_delete">Delete</string>
+    <string name="keys_delete_confirm">Delete the key for %1$s? The API key itself stays valid at the provider until you revoke it there.</string>
+    <string name="keys_get_free">Get free key</string>
+    <string name="keys_docs">Docs</string>
+    <string name="keys_free_tier">Free tier</string>
+    <string name="keys_configured">%1$d configured</string>
+    <string name="keys_test">Test</string>
+    <string name="keys_testing">Testing…</string>
+    <string name="keys_ok">Works · %1$d models</string>
+    <string name="keys_bad">Key rejected</string>
+    <string name="keys_model_count">%1$d models</string>
+    <string name="keys_retry_later">Rate limited</string>
+    <string name="keys_show">Show</string>
+    <string name="keys_hide">Hide</string>
+    <string name="keys_enabled">Enabled</string>
+    <string name="keys_no_key_needed">No key needed</string>
+    <string name="keys_used">%1$d requests this session</string>
+
+    <!-- Key dialog -->
+    <string name="key_dialog_new">Add API key</string>
+    <string name="key_dialog_edit">Edit API key</string>
+    <string name="key_dialog_provider">Provider</string>
+    <string name="key_dialog_value">API key</string>
+    <string name="key_dialog_value_hint">Paste the key from the provider dashboard</string>
+    <string name="key_dialog_account">Account ID (optional)</string>
+    <string name="key_dialog_save">Save</string>
+    <string name="key_dialog_cancel">Cancel</string>
+    <string name="key_dialog_saved">Key saved</string>
+    <string name="key_dialog_paste">Paste</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_model">Model</string>
+    <string name="settings_model_pick">Choose model</string>
+    <string name="settings_model_refresh">Refresh models</string>
+    <string name="settings_model_auto">Auto (provider default)</string>
+    <string name="settings_model_auto_desc">Let each provider use its own default model</string>
+    <string name="settings_system_prompt">System prompt</string>
+    <string name="settings_system_prompt_hint">Optional instructions for the assistant</string>
+    <string name="settings_temperature">Temperature · %1$.1f</string>
+    <string name="settings_max_tokens">Max output tokens</string>
+    <string name="settings_streaming">Streaming</string>
+    <string name="settings_streaming_desc">Show the answer token by token while it arrives</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">System</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_fa">فارسی</string>
+    <string name="settings_usage">Usage this session</string>
+    <string name="settings_about">About</string>
+    <string name="settings_about_body">AI APN Connect talks to AI providers using the free keys you own. Keys stay encrypted on this device. Free tiers are provided by each provider and their limits may change.</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_clear_history">Clear all chats</string>
+    <string name="settings_clear_history_done">Chats cleared</string>
+
+    <!-- Common -->
+    <string name="common_save">Save</string>
+    <string name="common_close">Close</string>
+    <string name="common_error">Error</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_back">Back</string>
+    <string name="common_optional">optional</string>
+    <string name="common_history">History</string>
+    <string name="common_no_history">No chats yet</string>
+    <string name="common_rename">Rename</string>
+    <string name="common_untitled">New chat</string>
+</resources>
