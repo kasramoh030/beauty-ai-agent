@@ -270,7 +270,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     suspend fun prepareImage(uri: Uri): Pair<String, String>? = withContext(Dispatchers.IO) {
         try {
             val resolver = app.contentResolver
-            val bitmap = resolver.openInputStream(uri)?.use { input ->
+            val boundsWidth = resolver.openInputStream(uri)?.use { input ->
                 val options = android.graphics.BitmapFactory.Options()
                 options.inJustDecodeBounds = true
                 android.graphics.BitmapFactory.decodeStream(input, null, options)
@@ -279,7 +279,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
             val bitmap = resolver.openInputStream(uri)?.use { input ->
                 val options = android.graphics.BitmapFactory.Options()
-                options.inSampleSize = sampleSizeFor(bitmap, 1280)
+                options.inSampleSize = sampleSizeFor(boundsWidth, 1280)
                 android.graphics.BitmapFactory.decodeStream(input, null, options)
             } ?: return@withContext null
 

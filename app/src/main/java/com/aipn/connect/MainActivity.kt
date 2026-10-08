@@ -28,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.os.LocaleListCompat
@@ -82,9 +83,13 @@ fun ApnRoot() {
         }
     }
 
-    val locales = androidx.compose.ui.platform.LocalConfiguration.current.locales
-    LocaleState.isPersian = locales.isNotEmpty() &&
-        (locales[0]?.language ?: Locale.getDefault().language).equals("fa", ignoreCase = true)
+    val configuration = LocalConfiguration.current
+    val language = if (configuration.localeList.isEmpty()) {
+        Locale.getDefault().language
+    } else {
+        configuration.localeList[0].language
+    }
+    LocaleState.isPersian = language.equals("fa", ignoreCase = true)
 
     ApnTheme(
         darkTheme = when (settings.theme) {
@@ -135,8 +140,3 @@ fun ApnRoot() {
         }
     }
 }
-
-/** Small alias so this file does not need the lifecycle-compose import twice. */
-@Composable
-private fun <T> kotlinx.coroutines.flow.StateFlow<T>.collectAsStateWithLifecycleCompat() =
-    androidx.lifecycle.compose.collectAsStateWithLifecycle(this)

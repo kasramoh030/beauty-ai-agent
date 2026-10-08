@@ -43,16 +43,16 @@ class ChatEngine(private val vault: KeyVault) {
 
     companion object {
         private val JSON = "application/json; charset=utf-8".toMediaType()
+    }
 
-        /**
-         * Order used for automatic fallback: providers the user enabled first, then the
-         * ones that need no key, so the app always has something to answer with.
-         */
-        fun fallbackOrder(enabledIds: Set<String>): List<Provider> {
-            val enabled = Providers.ALL.filter { it.id in enabledIds && vault.isUsable(it) }
-            val zeroKey = Providers.ALL.filter { it.id !in enabledIds && it.keyOptional }
-            return enabled + zeroKey
-        }
+    /**
+     * Order used for automatic fallback: providers the user enabled first, then the
+     * ones that need no key, so the app always has something to answer with.
+     */
+    fun fallbackOrder(enabledIds: Set<String>): List<Provider> {
+        val enabled = Providers.ALL.filter { it.id in enabledIds && vault.isUsable(it) }
+        val zeroKey = Providers.ALL.filter { it.id !in enabledIds && it.keyOptional }
+        return enabled + zeroKey
     }
 
     // ---- model discovery ----------------------------------------------------
