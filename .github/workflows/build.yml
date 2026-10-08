@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      statuses: write
 
     steps:
       - name: Checkout
@@ -41,14 +42,47 @@ jobs:
           set -o pipefail
           gradle assembleDebug assembleRelease --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
           status=${PIPESTATUS[0]}
+
+          # Collect the interesting lines so they can be published on the commit status,
+          # which is readable through the API even when job logs are not.
+          {
+            grep -aoE "^e: file:[^ ]+|^e: [^ ]+ .*|error: .*|ERROR: .*|FAILURE: .*|A problem occurred[^$]*|> [A-Za-z].*" /tmp/build.log \
+              | head -20 || true
+          } > /tmp/errors.txt
+
+          # Escape for GitHub annotation format (%, CR, LF).
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          try:
+              lines = [l.rstrip() for l in open('/tmp/errors.txt', encoding='utf-8', errors='replace')][:8]
+          except Exception:
+              lines = ['no errors captured']
+          summary = '\n'.join(lines)[:2000] or 'no errors captured'
+          summary = summary.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+          print('msg=' + summary)
+          PY
+
+          # Annotated error for the UI.
+          echo "::error title=Gradle build failed::$(head -c 1500 /tmp/errors.txt | sed 's/%/%25/g; s/\r/%0D/g' | tr '\n' '%0A')"
+          echo "$msg" > /tmp/msg.txt
+
           if [ "$status" -ne 0 ]; then
-            echo "::error::gradle build failed"
-            grep -nE "^e: |error: |FAILURE:|What went wrong|^\* What went wrong|Caused by:|Could not (find|resolve|download)" /tmp/build.log \
-              | head -25 | sed 's/^/::error:: /' || true
             exit "$status"
           fi
 
+      - name: Publish failure details
+        if: failure()
+        run: |
+          msg=$(cat /tmp/msg.txt 2>/dev/null || echo "build failed")
+          # Commit status descriptions are single-line and capped at 140 chars.
+          short=$(printf '%s' "$msg" | tr '\n' ' ' | cut -c1-130)
+          gh api -X POST "/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -f state=failure -f context="build-errors" \
+            -f description="see checks" >/dev/null 2>&1 || true
+          echo "$short"
+
       - name: Upload APKs
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: ai-apn-connect-apk
