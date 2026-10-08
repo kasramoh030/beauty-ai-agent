@@ -112,4 +112,30 @@
     <string name="active_model_none">هنوز هیچ مدلی فعال نیست</string>
     <string name="add_key_for">افزودن کلید %1$s</string>
     <string name="models_title">مدل‌ها</string>
+    <!-- Reference UI copy -->
+    <string name="keys_title_page">کلیدهای API</string>
+    <string name="keys_privacy_note">کلیدها فقط روی همین دستگاه ذخیره میشوند و هیچ‌وقت به سرویس‌دهنده ارسال میشوند.</string>
+    <string name="keys_get_key">دریافت کلید</string>
+    <string name="keys_badge_free">رایگان</string>
+    <string name="keys_api_key_label">API key</string>
+    <string name="keys_custom_models">Custom models (comma separated)</string>
+    <string name="keys_save">ذخیره</string>
+    <string name="keys_saved">ذخیره شد</string>
+    <string name="search_models">جستجوی مدل…</string>
+    <string name="new_chat">گفتگوی جدید</string>
+    <string name="drawer_open">منو</string>
+    <string name="drawer_close">بستن</string>
+    <string name="search_keys">کلیدهای API</string>
+    <string name="send_message">پیام خود را بنویسید…</string>
+    <string name="settings_gear">تنظیمات</string>
+    <string name="chat_deleted">گفتگو حذف شد</string>
+    <string name="no_chats">هنوز گفتگویی ندارید</string>
+    <string name="custom">سفارشی</string>
+    <string name="remove_key">حذف کلید</string>
+    <string name="key_stored">کلید ذخیره شد</string>
+    <string name="key_missing">هنوز کلیدی وارد نشده</string>
+    <string name="app_short_name">کلید</string>
+    <string name="keys_free_tier_short">لایه رایگان بدون کارت بانکی</string>
+    <string name="settings_title_page">تنظیمات</string>
+    <string name="settings_source">کد منبع</string>
 </resources>

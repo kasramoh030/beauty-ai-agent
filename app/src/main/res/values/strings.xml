@@ -112,4 +112,30 @@
     <string name="active_model_none">No active model yet</string>
     <string name="add_key_for">Add %1$s key</string>
     <string name="models_title">Models</string>
+    <!-- Reference UI copy -->
+    <string name="keys_title_page">API keys</string>
+    <string name="keys_privacy_note">Keys are stored only on this device and are never sent to the provider.</string>
+    <string name="keys_get_key">Get key</string>
+    <string name="keys_badge_free">Free</string>
+    <string name="keys_api_key_label">API key</string>
+    <string name="keys_custom_models">Custom models (comma separated)</string>
+    <string name="keys_save">Save</string>
+    <string name="keys_saved">Saved</string>
+    <string name="search_models">Search models…</string>
+    <string name="new_chat">New chat</string>
+    <string name="drawer_open">Menu</string>
+    <string name="drawer_close">Close</string>
+    <string name="search_keys">API keys</string>
+    <string name="send_message">Type your message…</string>
+    <string name="settings_gear">Settings</string>
+    <string name="chat_deleted">Chat deleted</string>
+    <string name="no_chats">No chats yet</string>
+    <string name="custom">Custom</string>
+    <string name="remove_key">Remove key</string>
+    <string name="key_stored">Key saved</string>
+    <string name="key_missing">No key entered yet</string>
+    <string name="app_short_name">Key</string>
+    <string name="keys_free_tier_short">Free tier, no credit card</string>
+    <string name="settings_title_page">Settings</string>
+    <string name="settings_source">Source code</string>
 </resources>

@@ -1,20 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Four-point sparkle mark, drawn in the safe zone of the 108x108 canvas. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
-    android:viewportHeight="108">
-    <!-- the large four-point star -->
+    android:viewportHeight="108"
+    android:tint="#FFFFFF">
     <path
-        android:fillColor="#E9A23B"
+        android:fillColor="#FFFFFF"
         android:pathData="M54,26 C56.5,42 66,51.5 82,54 C66,56.5 56.5,66 54,82 C51.5,66 42,56.5 26,54 C42,51.5 51.5,42 54,26 Z" />
-    <!-- the small companion sparkle -->
     <path
-        android:fillColor="#F3C489"
+        android:fillColor="#FFFFFF"
         android:pathData="M74,26 C75,32 80,37 86,38 C80,39 75,44 74,50 C73,44 68,39 62,38 C68,37 73,32 74,26 Z" />
-    <!-- inner cut-out -->
-    <path
-        android:fillColor="#12333D"
-        android:pathData="M54,44 C55,49 59,53 64,54 C59,55 55,59 54,64 C53,59 49,55 44,54 C49,53 53,49 54,44 Z" />
 </vector>

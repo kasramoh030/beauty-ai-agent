@@ -121,10 +121,7 @@ class KeyVault(context: Context) {
     // ---- enable / disable ---------------------------------------------------
 
     fun isEnabled(providerId: String): Boolean =
-        prefs.getBoolean(K_ENABLED + providerId, defaultEnabled(providerId))
-
-    private fun defaultEnabled(providerId: String): Boolean =
-        providerId == "pollinations" || providerId == "gemini"
+        prefs.getBoolean(K_ENABLED + providerId, true)
 
     fun setEnabled(providerId: String, enabled: Boolean) {
         prefs.edit().putBoolean(K_ENABLED + providerId, enabled).apply()

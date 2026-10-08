@@ -14,6 +14,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
@@ -23,6 +25,8 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,27 +41,49 @@ import com.aipn.connect.R
 import com.aipn.connect.ThemeChoice
 
 @Composable
-fun SettingsScreen(viewModel: AppViewModel) {
+fun SettingsScreen(viewModel: AppViewModel, onClose: () -> Unit, openUrl: (String) -> Unit) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
-    val keys by viewModel.keys.collectAsStateWithLifecycle()
+    val cards by viewModel.cards.collectAsStateWithLifecycle()
     var prompt by remember(settings.systemPrompt) { mutableStateOf(settings.systemPrompt) }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(14.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
+    Column(Modifier.fillMaxSize()) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Spacer(Modifier.weight(1f))
+            Text(
+                stringResource(R.string.settings_title_page),
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Spacer(Modifier.weight(1f))
+            IconButton(onClick = onClose) {
+                Icon(
+                    Icons.Rounded.Close,
+                    contentDescription = stringResource(R.string.drawer_close),
+                )
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
         item { SettingsCard(title = stringResource(R.string.settings_model_pick)) {
-            keys.filter { it.enabled && (it.hasKey || it.provider.keyOptional) }
+            cards.filter { it.enabled && (it.hasKey || it.provider.keyOptional) }
                 .forEach { status ->
                     Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                         Text(
-                            if (LocaleState.isPersian) status.provider.nameFa else status.provider.name,
+                            status.provider.name,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                            status.model.ifBlank { status.provider.defaultModel },
+                            status.provider.customModels.split(',').firstOrNull()?.takeIf { it.isNotBlank() }
+                            ?: status.provider.defaultModel,
                             style = MaterialTheme.typography.titleMedium,
                         )
                     }
@@ -153,7 +179,7 @@ fun SettingsScreen(viewModel: AppViewModel) {
         } }
 
         item { SettingsCard(title = stringResource(R.string.settings_usage)) {
-            keys.filter { it.requests > 0 }
+            cards.filter { it.requests > 0 }
                 .sortedByDescending { it.requests }
                 .forEach { status ->
                     Row(Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
@@ -197,7 +223,14 @@ fun SettingsScreen(viewModel: AppViewModel) {
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Spacer(Modifier.height(8.dp))
+            TextButton(onClick = {
+                openUrl("https://github.com/kasramoh030/beauty-ai-agent")
+            }) {
+                Text(stringResource(R.string.settings_source), style = MaterialTheme.typography.labelMedium)
+            }
         } }
+    }
     }
 }
 
@@ -238,9 +271,4 @@ private fun SwitchRow(
         Spacer(Modifier.width(10.dp))
         Switch(checked = checked, onCheckedChange = onChange)
     }
-}
-
-/** Simple holder so screens can pick the right language without threading state everywhere. */
-object LocaleState {
-    var isPersian: Boolean = false
 }
