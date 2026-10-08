@@ -246,6 +246,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /** The provider the router will use first, together with the model it will ask for. */
+    fun activeModel(): Pair<String, String>? {
+        val provider = candidates().firstOrNull() ?: return null
+        return provider.name to vault.resolvedModel(provider)
+    }
+
+    /** The provider we would suggest adding a key for when nothing is usable yet. */
+    fun suggestedProvider(): Provider? =
+        candidates().firstOrNull() ?: Providers.ALL.firstOrNull { it.id == "gemini" }
+
     fun stop() {
         sendJob?.cancel()
         sendJob = null

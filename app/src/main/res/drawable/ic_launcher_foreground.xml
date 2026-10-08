@@ -1,16 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Launcher icon: a key, matching the "Key / AI chat" concept.
+  Kept inside the adaptive-icon safe zone (the centre 72x72 of the 108x108 canvas).
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
+    <!-- ring -->
     <path
-        android:fillColor="#4F46E5"
-        android:pathData="M30,34 L78,34 A6,6 0 0 1 84,40 L84,68 A6,6 0 0 1 78,74 L48,74 L34,84 L34,74 L30,74 A6,6 0 0 1 24,68 L24,40 A6,6 0 0 1 30,34 Z" />
+        android:fillType="evenOdd"
+        android:fillColor="#C7D2FE"
+        android:pathData="M54,34 m-16,0 a16,16 0 1,0 32,0 a16,16 0 1,0 -32,0 Z
+                          M54,34 m-8,0 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0 Z" />
+
+    <!-- shaft -->
     <path
-        android:fillColor="#A5B4FC"
-        android:pathData="M44,46 L64,46 L64,52 L44,52 Z" />
+        android:fillColor="#C7D2FE"
+        android:pathData="M49,44 L59,44 L59,78 A5,5 0 0 1 54,83 A5,5 0 0 1 49,78 Z" />
+
+    <!-- teeth -->
     <path
-        android:fillColor="#A5B4FC"
-        android:pathData="M44,58 L58,58 L58,64 L44,64 Z" />
+        android:fillColor="#C7D2FE"
+        android:pathData="M59,58 L72,58 L72,64 L59,64 Z" />
+    <path
+        android:fillColor="#C7D2FE"
+        android:pathData="M59,68 L68,68 L68,74 L59,74 Z" />
+
+    <!-- highlight -->
+    <path
+        android:fillColor="#EEF2FF"
+        android:fillAlpha="0.55"
+        android:pathData="M54,29 m-16,0 a16,16 0 0 0 0,10 a16,16 0 0 1 0,-10 Z" />
 </vector>

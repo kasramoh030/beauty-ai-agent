@@ -12,7 +12,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-private val Indigo = Color(0xFF4F46E5)
+private val Indigo = Color(0xFF4F46E5)   // matches the launcher icon
 private val IndigoDark = Color(0xFF3730A3)
 private val Sky = Color(0xFF0EA5E9)
 

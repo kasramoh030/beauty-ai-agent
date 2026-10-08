@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AI APN Connect</string>
-    <string name="tagline">All your free AI keys, one chat</string>
+    <string name="tagline">AI chat</string>
 
     <!-- Navigation -->
     <string name="nav_chat">Chat</string>
@@ -11,8 +11,8 @@
     <!-- Chat -->
     <string name="chat_title">Chat</string>
     <string name="chat_hint">Message the AI…</string>
-    <string name="chat_empty_title">No messages yet</string>
-    <string name="chat_empty_body">Pick a provider and say something. Every answer is free if you use a free key.</string>
+    <string name="chat_empty_title">What would you like to ask?</string>
+    <string name="chat_empty_body">Talk to the AI. Add the free keys you own to get answers at no cost.</string>
     <string name="chat_send">Send</string>
     <string name="chat_stop">Stop</string>
     <string name="chat_regenerate">Regenerate</string>
@@ -107,4 +107,9 @@
     <string name="common_no_history">No chats yet</string>
     <string name="common_rename">Rename</string>
     <string name="common_untitled">New chat</string>
+    <!-- Active model / add-key, mirroring the reference UI -->
+    <string name="active_model">Active model: %1$s · %2$s</string>
+    <string name="active_model_none">No active model yet</string>
+    <string name="add_key_for">Add %1$s key</string>
+    <string name="models_title">Models</string>
 </resources>

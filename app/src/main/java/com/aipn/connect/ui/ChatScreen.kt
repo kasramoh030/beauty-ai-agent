@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.ContentCopy
@@ -32,6 +33,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -104,7 +106,7 @@ fun ChatScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (messages.isEmpty()) {
-                item { EmptyState() }
+                item { EmptyState(viewModel, onOpenKeys) }
             }
             items(messages, key = { it.id }) { message ->
                 MessageBubble(
@@ -135,33 +137,63 @@ fun ChatScreen(
     }
 }
 
+/** Mirrors the reference UI: a headline, the active model line and a key shortcut. */
 @Composable
-private fun EmptyState() {
+private fun EmptyState(viewModel: AppViewModel, onOpenKeys: () -> Unit) {
+    val active by remember { mutableStateOf(viewModel.activeModel()) }
+    val suggested = remember { viewModel.suggestedProvider() }
+
     Column(
         Modifier
             .fillMaxWidth()
-            .padding(top = 48.dp, bottom = 24.dp),
+            .padding(top = 56.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Icon(
-            Icons.Rounded.AutoAwesome,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(52.dp),
-        )
-        Spacer(Modifier.height(14.dp))
         Text(
             stringResource(R.string.chat_empty_title),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
         )
-        Spacer(Modifier.height(6.dp))
+
+        Spacer(Modifier.height(14.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                Icons.Rounded.Bolt,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.size(16.dp),
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                if (active != null) {
+                    stringResource(R.string.active_model, active!!.first, active!!.second)
+                } else {
+                    stringResource(R.string.active_model_none)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        Spacer(Modifier.height(20.dp))
+
         Text(
             stringResource(R.string.chat_empty_body),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 18.dp),
         )
+
+        if (active == null && suggested != null) {
+            Spacer(Modifier.height(18.dp))
+            FilledTonalButton(onClick = onOpenKeys) {
+                Icon(Icons.Rounded.Add, contentDescription = null, Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.add_key_for, suggested.name))
+            }
+        }
     }
 }
 

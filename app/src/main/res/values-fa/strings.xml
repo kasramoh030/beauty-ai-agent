@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AI APN Connect</string>
-    <string name="tagline">همه کلیدهای رایگان، در یک چت</string>
+    <string name="tagline">چت هوش مصنوعی</string>
 
     <!-- Navigation -->
     <string name="nav_chat">چت</string>
@@ -11,8 +11,8 @@
     <!-- Chat -->
     <string name="chat_title">گفتگو</string>
     <string name="chat_hint">پیامت را بنویس…</string>
-    <string name="chat_empty_title">هنوز پیامی نیست</string>
-    <string name="chat_empty_body">یک سرویس انتخاب کن و بنویس. اگر کلید رایگان وارد کنی، پاسخ‌ها رایگان است.</string>
+    <string name="chat_empty_title">از چه چیزی بپرسیم؟</string>
+    <string name="chat_empty_body">با هوش مصنوعی حرف بزن. کلیدهای رایگانی که داری را اضافه کن تا بدون هزینه جواب بگیری.</string>
     <string name="chat_send">ارسال</string>
     <string name="chat_stop">توقف</string>
     <string name="chat_regenerate">ارسال دوباره</string>
@@ -107,4 +107,9 @@
     <string name="common_no_history">هنوز گفتگویی نیست</string>
     <string name="common_rename">تغییر نام</string>
     <string name="common_untitled">گفتگوی جدید</string>
+    <!-- Active model / add-key, mirroring the reference UI -->
+    <string name="active_model">مدل فعال: %1$s · %2$s</string>
+    <string name="active_model_none">هنوز هیچ مدلی فعال نیست</string>
+    <string name="add_key_for">افزودن کلید %1$s</string>
+    <string name="models_title">مدل‌ها</string>
 </resources>
