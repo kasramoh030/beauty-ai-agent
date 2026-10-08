@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -45,12 +46,11 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.heightIn
+import com.aipn.connect.R
+import com.aipn.connect.data.Session
 
 /** Button text colour that stays readable on the amber accent. */
 private val Ink = Color(0xFF1A1206)
-import com.aipn.connect.R
-import com.aipn.connect.data.Session
 
 /** Side drawer with the app mark, "new chat", the saved conversations and a keys shortcut. */
 @Composable
