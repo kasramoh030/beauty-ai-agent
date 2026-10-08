@@ -130,7 +130,7 @@ fun ChatDrawer(
                             .raised(depth, rowShape, elevation = if (session.id == activeId) 8.dp else 2.dp)
                             .clip(rowShape)
                             .background(
-                                if (session.id == activeId) SelectedTeal
+                                if (session.id == activeId) selectedFill()
                                 else MaterialTheme.colorScheme.surfaceVariant
                             )
                             .rimLight(depth, rowShape)
@@ -304,7 +304,7 @@ fun ModelSheet(
                         Modifier
                             .fillMaxWidth()
                             .clip(rowShape)
-                            .background(if (selected) SelectedTeal else Color.Transparent)
+                            .background(if (selected) selectedFill() else Color.Transparent)
                             .rimLight(depth, rowShape)
                             .clickable {
                                 viewModel.setModel(card.provider.id, model)

@@ -22,6 +22,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -103,26 +104,27 @@ fun SettingsScreen(viewModel: AppViewModel, onClose: () -> Unit, openUrl: (Strin
             )
         } }
 
-        item { SettingsCard(title = stringResource(R.string.settings_temperature)) {
+        item { SettingsCard(title = stringResource(R.string.settings_generation)) {
             Text(
                 stringResource(R.string.settings_temperature, settings.temperature),
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Slider(
+            DepthSlider(
                 value = settings.temperature,
                 onValueChange = { viewModel.setTemperature(it) },
                 valueRange = 0f..2f,
-                steps = 19,
             )
+            Spacer(Modifier.height(12.dp))
             Text(
-                stringResource(R.string.settings_max_tokens) + ": " + settings.maxTokens,
+                stringResource(R.string.settings_max_tokens_value, settings.maxTokens),
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Slider(
+            DepthSlider(
                 value = settings.maxTokens.toFloat(),
-                onValueChange = { viewModel.setMaxTokens(it.toInt()) },
+                onValueChange = { viewModel.setMaxTokens(roundToStep(it, 128f).toInt()) },
                 valueRange = 128f..8192f,
-                steps = 30,
             )
         } }
 
@@ -247,6 +249,32 @@ private fun SettingsCard(title: String, content: @Composable () -> Unit) {
         }
     }
 }
+
+/**
+ * A plain amber track instead of the stock M3 slider, whose dotted tick marks
+ * turned a two-value card into a ruler. The value is quantised by the caller.
+ */
+@Composable
+private fun DepthSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float>,
+) {
+    val track = MaterialTheme.colorScheme.outlineVariant
+    Slider(
+        value = value,
+        onValueChange = onValueChange,
+        valueRange = valueRange,
+        colors = SliderDefaults.colors(
+            thumbColor = Amber,
+            activeTrackColor = Amber,
+            inactiveTrackColor = track,
+        ),
+    )
+}
+
+private fun roundToStep(value: Float, step: Float): Float =
+    (value / step).let { kotlin.math.round(it) } * step
 
 @Composable
 private fun SwitchRow(

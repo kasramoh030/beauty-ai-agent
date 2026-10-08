@@ -79,6 +79,8 @@
     <string name="settings_system_prompt_hint">دستورالعمل اختیاری برای دستیار</string>
     <string name="settings_temperature">دمای پاسخ · %1$.1f</string>
     <string name="settings_max_tokens">حداکثر توکن خروجی</string>
+    <string name="settings_generation">تنظیمات تولید پاسخ</string>
+    <string name="settings_max_tokens_value">حداکثر توکن خروجی: %1$d</string>
     <string name="settings_streaming">پخش زنده</string>
     <string name="settings_streaming_desc">پاسخ را کلمه‌به‌کلمه هنگام رسیدن نشان بده</string>
     <string name="settings_theme">پوسته</string>
@@ -117,8 +119,8 @@
     <string name="keys_privacy_note">کلیدها فقط روی همین دستگاه ذخیره میشوند و هیچ‌وقت به سرویس‌دهنده ارسال میشوند.</string>
     <string name="keys_get_key">دریافت کلید</string>
     <string name="keys_badge_free">رایگان</string>
-    <string name="keys_api_key_label">API key</string>
-    <string name="keys_custom_models">Custom models (comma separated)</string>
+    <string name="keys_api_key_label">کلید API</string>
+    <string name="keys_custom_models">مدل‌های سفارشی (با کاما جدا کنید)</string>
     <string name="keys_save">ذخیره</string>
     <string name="keys_saved">ذخیره شد</string>
     <string name="search_models">جستجوی مدل…</string>

@@ -7,6 +7,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -24,6 +25,41 @@ val AmberSoft = Color(0xFFF3C489)
 val Teal = Color(0xFF12333D)
 val FreeGreen = Color(0xFF34D399)
 val SelectedTeal = Color(0xFF0E3129)
+
+/**
+ * True when the app is painting its dark canvas. Several accents below are
+ * hand-picked for that canvas and read as mud on the light one, so they ask this
+ * rather than hard-coding a branch at every call site.
+ */
+@Composable
+fun isDarkCanvas(): Boolean = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
+/** Fill for "this row is the active one" in the drawer and the model picker. */
+@Composable
+fun selectedFill(): Color =
+    if (isDarkCanvas()) SelectedTeal else Color(0xFFDCEFE6)
+
+/** Fill behind the green "free" badge; its text colour flips with it. */
+@Composable
+fun freeBadgeFill(): Color =
+    if (isDarkCanvas()) SelectedTeal else FreeGreen.copy(alpha = 0.18f)
+
+/** Text colour that stays legible on [freeBadgeFill]. */
+@Composable
+fun freeBadgeContent(): Color =
+    if (isDarkCanvas()) FreeGreen else Color(0xFF0F6B4C)
+
+/** An opaque tint of the accent over the surface — bubbles must not be see-through. */
+@Composable
+fun accentTint(fraction: Float): Color = Color(
+    red = lerpColorValue(MaterialTheme.colorScheme.surface.red, MaterialTheme.colorScheme.primary.red, fraction),
+    green = lerpColorValue(MaterialTheme.colorScheme.surface.green, MaterialTheme.colorScheme.primary.green, fraction),
+    blue = lerpColorValue(MaterialTheme.colorScheme.surface.blue, MaterialTheme.colorScheme.primary.blue, fraction),
+    alpha = 1f,
+)
+
+private fun lerpColorValue(from: Float, to: Float, fraction: Float): Float =
+    from + (to - from) * fraction
 
 private val DarkColors = darkColorScheme(
     primary = Amber,

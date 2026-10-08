@@ -28,6 +28,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
@@ -218,7 +219,7 @@ private fun ProviderKeyCard(
                 Text(
                     card.testResult,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (card.testResult.contains("models")) FreeGreen
+                    color = if (card.testResult.contains("models")) freeBadgeContent()
                     else MaterialTheme.colorScheme.error,
                 )
             }
@@ -234,13 +235,23 @@ private fun ProviderKeyCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                } else if (card.testResult == null) {
+                    OutlinedButton(
+                        onClick = onTest,
+                        enabled = card.key.isNotBlank() || card.provider.keyOptional,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Amber),
+                        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+                    ) {
+                        Text(stringResource(R.string.keys_test), style = MaterialTheme.typography.labelLarge)
+                    }
                 }
                 Spacer(Modifier.weight(1f))
                 if (saved) {
                     Text(
                         stringResource(R.string.keys_saved),
                         style = MaterialTheme.typography.labelMedium,
-                        color = FreeGreen,
+                        color = freeBadgeContent(),
                     )
                     Spacer(Modifier.width(10.dp))
                 }
@@ -258,13 +269,13 @@ private fun ProviderKeyCard(
 private fun FreeBadge() {
     Box(
         Modifier
-            .background(SelectedTeal, RoundedCornerShape(8.dp))
+            .background(freeBadgeFill(), RoundedCornerShape(8.dp))
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Text(
             stringResource(R.string.keys_badge_free),
             style = MaterialTheme.typography.labelMedium,
-            color = FreeGreen,
+            color = freeBadgeContent(),
         )
     }
 }

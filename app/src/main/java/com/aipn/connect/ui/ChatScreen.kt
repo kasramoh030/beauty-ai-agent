@@ -353,8 +353,9 @@ private fun MessageBubble(
                 .raised(depth, bubbleShape, elevation = if (isUser) 8.dp else 4.dp)
                 .clip(bubbleShape)
                 .background(
-                    if (isUser) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
-                    else MaterialTheme.colorScheme.surfaceVariant
+                    // Opaque: a see-through bubble lets the ambient gradient and the
+                    // shadow behind it show through as pale patches.
+                    if (isUser) accentTint(0.16f) else MaterialTheme.colorScheme.surfaceVariant
                 )
                 .rimLight(depth, bubbleShape)
                 .padding(14.dp),

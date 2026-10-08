@@ -14,16 +14,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -32,12 +32,11 @@ import kotlin.math.min
 
 /*
  * Depth kit — a small set of drawing primitives that make flat Compose surfaces
- * read as physical objects. Everything here uses only Compose's own graphics API
- * (shadow, drawOutline, brushes), so the app gains a dimensional look without
- * pulling in a 3D or blur dependency.
+ * read as physical objects. Everything here uses only Compose's own graphics API,
+ * so the app gains a dimensional look without pulling in a 3D or blur dependency.
  *
  * Three ingredients, used together:
- *   1. a directional shadow with the light at the top-left,
+ *   1. a drop shadow that falls away from a key light at the top-left,
  *   2. a bright rim on the top-left edge and a dark rim on the bottom-right,
  *   3. a slow specular sheen sweeping across the face.
  */
@@ -48,6 +47,8 @@ data class Depth(
     val rimWidth: Dp,
     val rimLight: Color,
     val rimDark: Color,
+    val shadow: Color,
+    val shadowAlpha: Float,
     val glow: Color,
     val glowStrength: Float,
     val ambient: Color,
@@ -59,6 +60,8 @@ private val DarkDepth = Depth(
     rimWidth = 1.5.dp,
     rimLight = Color(0x33FFFFFF),
     rimDark = Color(0x99000000),
+    shadow = Color.Black,
+    shadowAlpha = 0.55f,
     glow = Color(0xFFE9A23B),
     glowStrength = 1f,
     ambient = Color(0xFF0A100E),
@@ -69,7 +72,9 @@ private val LightDepth = Depth(
     elevation = 10.dp,
     rimWidth = 1.dp,
     rimLight = Color(0xFFFFFFFF),
-    rimDark = Color(0x1A000000),
+    rimDark = Color(0x24000000),
+    shadow = Color(0xFF5A6863),
+    shadowAlpha = 0.30f,
     glow = Color(0xFFD08A22),
     glowStrength = 0.5f,
     ambient = Color(0xFFF7F8F7),
@@ -88,40 +93,52 @@ fun rememberDepth(): Depth {
 }
 
 /**
- * Lifts a shape off the surface with a light-aware shadow, plus an optional warm
- * glow spilling onto the surface beneath — the way a lit object tints the floor
- * it rests on.
+ * Lifts a shape off the surface: a soft drop shadow offset away from the key light
+ * at the top-left, plus an optional warm glow spilling onto the surface beneath.
+ *
+ * The shadow is drawn as a stack of widening, fading strokes rather than through
+ * RenderNode elevation. Hardware elevation shadows are clipped to the layer's
+ * rectangle on some GPUs and came back as bright blocks inside rounded surfaces;
+ * drawing it by hand keeps the falloff, the direction and the colour predictable,
+ * and the shape's own fill covers the inner half of the stroke.
  */
 fun Modifier.raised(
     depth: Depth,
     shape: Shape,
     elevation: Dp = depth.elevation,
     glow: Float = 0f,
-): Modifier = this
-    // Two-tone shadow: a tight dark spot right under the object plus a wide soft
-    // ambient term, which is what separates a raised surface from a flat one.
-    .shadow(
-        elevation = elevation,
-        shape = shape,
-        clip = false,
-        ambientColor = Color.Black.copy(alpha = 0.40f),
-        spotColor = depth.glow.copy(alpha = 0.45f + 0.45f * glow),
-    )
-    .let { base ->
-        if (glow > 0f) {
-            base.drawBehind {
+): Modifier = drawWithContent {
+    val e = elevation.toPx()
+    if (e > 0.5f) {
+        val outline = shape.createOutline(size, layoutDirection, this)
+        val steps = 8
+        translate(left = e * 0.10f, top = e * 0.26f) {
+            for (step in steps downTo 1) {
+                val t = step / steps.toFloat()
+                val falloff = (1f - t) * (1f - t)
                 drawOutline(
-                    outline = shape.createOutline(size, layoutDirection, this),
-                    brush = Brush.radialGradient(
-                        0.5f to depth.glow.copy(alpha = 0.26f * glow),
-                        1f to Color.Transparent,
-                        center = Offset(size.width / 2f, size.height / 2f),
-                        radius = max(size.width, size.height) * 0.95f,
-                    ),
+                    outline = outline,
+                    brush = SolidColor(depth.shadow.copy(alpha = depth.shadowAlpha * falloff)),
+                    style = Stroke(width = e * 2f * t),
                 )
             }
-        } else base
+        }
     }
+
+    if (glow > 0f) {
+        drawOutline(
+            outline = shape.createOutline(size, layoutDirection, this),
+            brush = Brush.radialGradient(
+                0.5f to depth.glow.copy(alpha = 0.26f * glow),
+                1f to Color.Transparent,
+                center = Offset(size.width / 2f, size.height / 2f),
+                radius = max(size.width, size.height) * 0.95f,
+            ),
+        )
+    }
+
+    drawContent()
+}
 
 /**
  * Presses a shape into the surface: shadow on the top-left inner edge, highlight
@@ -205,7 +222,7 @@ fun AmbientBackground(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .drawBehind {
+            .drawWithContent {
                 drawRect(depth.ambient)
                 drawRect(
                     Brush.radialGradient(
@@ -223,6 +240,7 @@ fun AmbientBackground(
                         radius = size.maxDimension * 0.62f,
                     ),
                 )
+                drawContent()
             },
         content = content,
     )

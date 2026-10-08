@@ -79,6 +79,8 @@
     <string name="settings_system_prompt_hint">Optional instructions for the assistant</string>
     <string name="settings_temperature">Temperature · %1$.1f</string>
     <string name="settings_max_tokens">Max output tokens</string>
+    <string name="settings_generation">Generation</string>
+    <string name="settings_max_tokens_value">Max output tokens: %1$d</string>
     <string name="settings_streaming">Streaming</string>
     <string name="settings_streaming_desc">Show the answer token by token while it arrives</string>
     <string name="settings_theme">Theme</string>
