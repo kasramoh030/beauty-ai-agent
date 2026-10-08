@@ -52,6 +52,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aipn.connect.R
 import com.aipn.connect.ThemeChoice
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(viewModel: AppViewModel, onClose: () -> Unit, openUrl: (String) -> Unit) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -292,6 +293,7 @@ private fun DepthSlider(
 private fun roundToStep(value: Float, step: Float): Float =
     (value / step).let { kotlin.math.round(it) } * step
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun themeLabelOf(choice: ThemeChoice): Int = when (choice) {
     ThemeChoice.SYSTEM -> R.string.settings_theme_system

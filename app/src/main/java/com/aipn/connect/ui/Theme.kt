@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.aipn.connect.R
+import com.aipn.connect.ThemeChoice
 
 /**
  * Palette lifted from the reference design: a near-black green tinted canvas, a
