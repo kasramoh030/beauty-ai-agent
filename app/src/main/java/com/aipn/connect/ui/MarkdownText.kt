@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,9 +23,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.ui.unit.sp
 
 /**
@@ -158,42 +157,61 @@ private fun CodeBlock(code: String, language: String) {
     }
 }
 
-/** Applies inline `code`, **bold** and *italic* inside an already-parsed line. */
-fun annotateInline(text: String, base: androidx.compose.ui.text.TextStyle): AnnotatedString = buildAnnotatedString {
-    var index = 0
-    while (index < text.length) {
-        val char = text[index]
-        when {
-            char == '`' -> {
-                val end = text.indexOf('`', index + 1)
-                if (end > index) {
-                    withStyle(SpanStyle(fontFamily = FontFamily.Monospace, fontSize = (base.fontSize - 1).coerceAtLeast(11.sp))) {
+/** Applies inline `code`, **bold** and *italic** inside an already-parsed line. */
+fun annotateInline(text: String, base: androidx.compose.ui.text.TextStyle): AnnotatedString =
+    buildAnnotatedString {
+        val monoSize = (base.fontSize.value - 1f).coerceAtLeast(11f).sp
+        val codeStyle = SpanStyle(fontFamily = FontFamily.Monospace, fontSize = monoSize)
+        val boldStyle = SpanStyle(fontWeight = FontWeight.Bold)
+        val italicStyle = SpanStyle(fontStyle = FontStyle.Italic)
+
+        var index = 0
+        while (index < text.length) {
+            val char = text[index]
+            when {
+                char == '`' -> {
+                    val end = text.indexOf('`', index + 1)
+                    if (end > index) {
+                        pushStyle(codeStyle)
                         append(text.substring(index + 1, end))
+                        pop()
+                        index = end + 1
+                    } else {
+                        append(char)
+                        index++
                     }
-                    index = end + 1
-                } else {
-                    append(char); index++
+                }
+
+                char == '*' && index + 1 < text.length && text[index + 1] == '*' -> {
+                    val end = text.indexOf("**", index + 2)
+                    if (end > index) {
+                        pushStyle(boldStyle)
+                        append(text.substring(index + 2, end))
+                        pop()
+                        index = end + 2
+                    } else {
+                        append(char)
+                        index++
+                    }
+                }
+
+                char == '*' -> {
+                    val end = text.indexOf('*', index + 1)
+                    if (end > index) {
+                        pushStyle(italicStyle)
+                        append(text.substring(index + 1, end))
+                        pop()
+                        index = end + 1
+                    } else {
+                        append(char)
+                        index++
+                    }
+                }
+
+                else -> {
+                    append(char)
+                    index++
                 }
             }
-            char == '*' && index + 1 < text.length && text[index + 1] == '*' -> {
-                val end = text.indexOf("**", index + 2)
-                if (end > index) {
-                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(text.substring(index + 2, end)) }
-                    index = end + 2
-                } else {
-                    append(char); index++
-                }
-            }
-            char == '*' -> {
-                val end = text.indexOf('*', index + 1)
-                if (end > index) {
-                    withStyle(SpanStyle(fontStyle = FontStyle.Italic)) { append(text.substring(index + 1, end)) }
-                    index = end + 1
-                } else {
-                    append(char); index++
-                }
-            }
-            else -> { append(char); index++ }
         }
     }
-}
