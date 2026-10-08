@@ -62,12 +62,31 @@ jobs:
               if t and t not in seen:
                   seen.add(t)
                   merged.append(t)
+          with open('/tmp/messages.txt', 'w', encoding='utf-8') as fh:
+              fh.write('\n'.join(merged[:30]))
           for msg in merged[:30]:
               print('::error file=build.yml,line=1,title=Build failed::' +
                     msg.replace('%', '%25').replace('\r', '%0D'))
           PYEOF
 
           tail -n 20 /tmp/build.log
+
+          # Commit statuses are the one output channel that is always readable
+          # through the API, so mirror the failure lines there too.
+          if [ "$status" -ne 0 ]; then
+            n=0
+            while IFS= read -r line; do
+              n=$((n+1))
+              [ "$n" -gt 12 ] && break
+              short=$(printf '%s' "$line" | tr '\n' ' ' | cut -c1-130)
+              curl -s -X POST \
+                -H "Authorization: Bearer $GITHUB_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+                -d "state=failure" -d "context=build-error-$n" -d "description=$short" > /dev/null
+            done < /tmp/messages.txt
+          fi
+
           exit $status
 
       - name: Upload APKs
