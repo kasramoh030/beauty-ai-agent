@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.unit.dp
 import com.aipn.connect.R
 import com.aipn.connect.data.Session
@@ -205,7 +206,7 @@ fun ModelSheet(
     viewModel: AppViewModel,
     onDismiss: () -> Unit,
 ) {
-    val cards by viewModel.cards.collectAsStateWithLifecycleCompat()
+    val cards by viewModel.cards.collectAsStateWithLifecycle()
     var query by remember { mutableStateOf("") }
 
     Column(
@@ -308,7 +309,3 @@ fun ModelSheet(
         Spacer(Modifier.height(18.dp))
     }
 }
-
-@Composable
-private fun <T> kotlinx.coroutines.flow.StateFlow<T>.collectAsStateWithLifecycleCompat() =
-    androidx.lifecycle.compose.collectAsStateWithLifecycle(this)
