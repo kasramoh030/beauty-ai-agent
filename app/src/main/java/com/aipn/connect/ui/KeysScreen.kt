@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.OpenInNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -76,7 +77,7 @@ fun KeysScreen(
                 Spacer(Modifier.weight(1f))
                 IconButton(onClick = onClose) {
                     Icon(
-                        androidx.compose.material.icons.Icons.Rounded.Close,
+                        Icons.Rounded.Close,
                         contentDescription = stringResource(R.string.drawer_close),
                     )
                 }
