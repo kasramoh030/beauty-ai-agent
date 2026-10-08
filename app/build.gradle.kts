@@ -16,19 +16,18 @@ android {
         vectorDrawables { useSupportLibrary = true }
     }
 
-    val keystoreFile = file(
-        System.getenv("APN_STORE_FILE") ?: "apn-release.keystore"
-    )
-    val storePass = System.getenv("APN_STORE_PASSWORD") ?: "android"
-    val keyPass = System.getenv("APN_KEY_PASSWORD") ?: "android"
-    val keyAlias = System.getenv("APN_KEY_ALIAS") ?: "apn"
+    // Named with a suffix so they cannot shadow the signing-config properties below.
+    val ksFile = file(System.getenv("APN_STORE_FILE") ?: "apn-release.keystore")
+    val ksStorePass = System.getenv("APN_STORE_PASSWORD") ?: "android"
+    val ksKeyPass = System.getenv("APN_KEY_PASSWORD") ?: "android"
+    val ksAlias = System.getenv("APN_KEY_ALIAS") ?: "apn"
 
     signingConfigs {
         create("apn") {
-            storeFile = keystoreFile
-            storePassword = storePass
-            keyAlias = keyAlias
-            keyPassword = keyPass
+            storeFile = ksFile
+            storePassword = ksStorePass
+            keyAlias = ksAlias
+            keyPassword = ksKeyPass
             enableV1Signing = true
             enableV2Signing = true
         }
