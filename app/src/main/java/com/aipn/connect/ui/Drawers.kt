@@ -256,11 +256,14 @@ fun ModelSheet(
         Spacer(Modifier.height(10.dp))
 
         LazyColumn(Modifier.heightIn(max = 420.dp)) {
-            cards.filter { it.hasKey || it.provider.keyOptional }.forEach { card ->
-                val models = card.models.filter { query.isBlank() || it.contains(query, ignoreCase = true) }
-                if (models.isEmpty()) return@forEach
+            val usable = cards.filter { it.hasKey || it.provider.keyOptional }
+            for (card in usable) {
+                val models = card.models.filter { model ->
+                    query.isBlank() || model.contains(query, ignoreCase = true)
+                }
+                if (models.isEmpty()) continue
 
-                item(key = "header_${card.provider.id}") {
+                item(key = "header_" + card.provider.id) {
                     Text(
                         card.provider.name,
                         style = MaterialTheme.typography.titleMedium,
@@ -269,7 +272,11 @@ fun ModelSheet(
                     )
                 }
 
-                items(models, key = { "${card.provider.id}_$it" }) { model ->
+                items(
+                    count = models.size,
+                    key = { index -> card.provider.id + "_" + models[index] },
+                ) { index ->
+                    val model = models[index]
                     val selected = card.model == model
                     Row(
                         Modifier
