@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Base64
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.aipn.connect.App
 import com.aipn.connect.PreferenceStore
 import com.aipn.connect.ThemeChoice
 import com.aipn.connect.data.KeyVault
@@ -57,7 +58,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _sending = MutableStateFlow(false)
     val sending = _sending.asStateFlow()
 
-    private val _keys = MutableStateFlow(List(Providers.ALL) { KeyStatus(it, vault.hasKey(it.id), vault.isEnabled(it.id), vault.modelFor(it.id), requests = vault.requestCount(it.id)) })
+    private val _keys = MutableStateFlow(
+        Providers.ALL.map { KeyStatus(it, vault.hasKey(it.id), vault.isEnabled(it.id), vault.modelFor(it.id), requests = vault.requestCount(it.id)) }
+    )
     val keys = _keys.asStateFlow()
 
     private val _settings = MutableStateFlow(SettingsState())

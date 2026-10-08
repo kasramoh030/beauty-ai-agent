@@ -379,5 +379,4 @@ private fun Composer(
 }
 
 private fun ByteArray.toBitmap(): android.graphics.Bitmap =
-    android.graphics.BitmapFactory.decodeByteArray(this, 0, size)ay.toBitmap(): android.graphics.Bitmap =
     android.graphics.BitmapFactory.decodeByteArray(this, 0, size)

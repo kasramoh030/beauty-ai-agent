@@ -28,7 +28,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.os.LocaleListCompat
@@ -83,11 +82,11 @@ fun ApnRoot() {
         }
     }
 
-    val configuration = LocalConfiguration.current
-    val language = if (configuration.localeList.isEmpty()) {
+    val configuration = context.resources.configuration
+    val language = if (configuration.locales.isEmpty) {
         Locale.getDefault().language
     } else {
-        configuration.localeList[0].language
+        configuration.locales[0].language
     }
     LocaleState.isPersian = language.equals("fa", ignoreCase = true)
 
