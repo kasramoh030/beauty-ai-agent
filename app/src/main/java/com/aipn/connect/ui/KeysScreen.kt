@@ -52,11 +52,6 @@ import com.aipn.connect.R
  * "free" badge, a "get key" link, the key field and a custom-models field.
  */
 @Composable
-/**
- * The API-keys page, laid out like the reference screen: a card per provider with a
- * "free" badge, a "get key" link, the key field and a custom-models field.
- */
-@Composable
 fun KeysScreen(
     viewModel: AppViewModel,
     onClose: (() -> Unit)? = null,

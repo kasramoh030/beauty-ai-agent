@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -23,7 +24,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -98,17 +98,15 @@ fun Modifier.raised(
     elevation: Dp = depth.elevation,
     glow: Float = 0f,
 ): Modifier = this
-    .graphicsLayer {
-        val px = elevation.toPx()
-        // Spot light is offset away from the top-left key light; ambient fills
-        // the opposite side so the form does not look like a flat cut-out.
-        spotColor = Color.Black.copy(alpha = 0.8f)
-        ambientColor = Color.Black.copy(alpha = 0.55f)
-        shadowElevation = px
-        shadowColor = depth.glow.copy(alpha = if (glow > 0f) 0.5f * glow else 0f)
-        this.shape = shape
-        clip = false
-    }
+    // Two-tone shadow: a tight dark spot right under the object plus a wide soft
+    // ambient term, which is what separates a raised surface from a flat one.
+    .shadow(
+        elevation = elevation,
+        shape = shape,
+        clip = false,
+        ambientColor = Color.Black.copy(alpha = 0.40f),
+        spotColor = depth.glow.copy(alpha = 0.45f + 0.45f * glow),
+    )
     .let { base ->
         if (glow > 0f) {
             base.drawBehind {
@@ -166,6 +164,7 @@ fun Modifier.rimLight(depth: Depth, shape: Shape): Modifier = this.drawWithConte
  * A slow diagonal highlight travelling across the content, as if a lamp were
  * moving over it.
  */
+@Composable
 fun Modifier.sheen(color: Color, durationMillis: Int = 5200): Modifier {
     val progress by rememberInfiniteTransition(label = "sheen").animateFloat(
         initialValue = 0f,
