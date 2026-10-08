@@ -52,6 +52,11 @@ import com.aipn.connect.R
  * "free" badge, a "get key" link, the key field and a custom-models field.
  */
 @Composable
+/**
+ * The API-keys page, laid out like the reference screen: a card per provider with a
+ * "free" badge, a "get key" link, the key field and a custom-models field.
+ */
+@Composable
 fun KeysScreen(
     viewModel: AppViewModel,
     onClose: (() -> Unit)? = null,
@@ -62,63 +67,63 @@ fun KeysScreen(
     val depth = rememberDepth()
 
     AmbientBackground(depth) {
-    Column(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize()) {
 
-        if (onClose != null) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Spacer(Modifier.weight(1f))
-                Text(
-                    stringResource(R.string.keys_title_page),
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                Spacer(Modifier.weight(1f))
-                IconButton(onClick = onClose) {
-                    Icon(
-                        Icons.Rounded.Close,
-                        contentDescription = stringResource(R.string.drawer_close),
+            if (onClose != null) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        stringResource(R.string.keys_title_page),
+                        style = MaterialTheme.typography.titleLarge,
                     )
+                    Spacer(Modifier.weight(1f))
+                    IconButton(onClick = onClose) {
+                        Icon(
+                            Icons.Rounded.Close,
+                            contentDescription = stringResource(R.string.drawer_close),
+                        )
+                    }
                 }
             }
-        }
 
-        LazyColumn(
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 18.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            item {
-                Text(
-                    stringResource(R.string.keys_privacy_note),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 6.dp),
-                )
+            LazyColumn(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 18.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                item {
+                    Text(
+                        stringResource(R.string.keys_privacy_note),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 6.dp),
+                    )
+                }
+
+                items(cards, key = { it.provider.id }) { card ->
+                    ProviderKeyCard(
+                        card = card,
+                        saved = savedProvider == card.provider.id,
+                        onKeyChange = { viewModel.setDraftKey(card.provider.id, it) },
+                        onModelsChange = { viewModel.setDraftModels(card.provider.id, it) },
+                        onSave = {
+                            viewModel.saveKey(card.provider.id)
+                            savedProvider = card.provider.id
+                        },
+                        onTest = { viewModel.testKey(card.provider.id) },
+                        onToggle = { viewModel.setEnabled(card.provider.id, it) },
+                        onOpenUrl = { openUrl(card.provider.keyUrl) },
+                    )
+                }
+
+                item { Spacer(Modifier.height(6.dp)) }
             }
-
-            items(cards, key = { it.provider.id }) { card ->
-                ProviderKeyCard(
-                    card = card,
-                    saved = savedProvider == card.provider.id,
-                    onKeyChange = { viewModel.setDraftKey(card.provider.id, it) },
-                    onModelsChange = { viewModel.setDraftModels(card.provider.id, it) },
-                    onSave = {
-                        viewModel.saveKey(card.provider.id)
-                        savedProvider = card.provider.id
-                    },
-                    onTest = { viewModel.testKey(card.provider.id) },
-                    onToggle = { viewModel.setEnabled(card.provider.id, it) },
-                    onOpenUrl = { openUrl(card.provider.keyUrl) },
-                )
-            }
-
-            item { Spacer(Modifier.height(6.dp)) }
         }
-    }
     }
 }
 

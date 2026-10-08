@@ -160,52 +160,52 @@ fun ChatScreen(
     }
 
     AmbientBackground(depth) {
-    Column(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize()) {
 
-        ChatTopBar(
-            model = model,
-            onMenu = onOpenDrawer,
-            onSettings = onOpenSettings,
-            onModel = onOpenModels,
-        )
+            ChatTopBar(
+                model = model,
+                onMenu = onOpenDrawer,
+                onSettings = onOpenSettings,
+                onModel = onOpenModels,
+            )
 
-        Box(Modifier.weight(1f)) {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                if (messages.isEmpty()) {
-                    item { EmptyState(viewModel, onOpenKeys) }
-                }
-                items(messages, key = { it.id }) { message ->
-                    MessageBubble(
-                        message = message,
-                        onCopy = { clipboard.setText(AnnotatedString(message.text)) },
-                        onRegenerate = { viewModel.regenerate() },
-                        onDelete = { viewModel.deleteMessage(message.id) },
-                    )
+            Box(Modifier.weight(1f)) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    if (messages.isEmpty()) {
+                        item { EmptyState(viewModel, onOpenKeys) }
+                    }
+                    items(messages, key = { it.id }) { message ->
+                        MessageBubble(
+                            message = message,
+                            onCopy = { clipboard.setText(AnnotatedString(message.text)) },
+                            onRegenerate = { viewModel.regenerate() },
+                            onDelete = { viewModel.deleteMessage(message.id) },
+                        )
+                    }
                 }
             }
-        }
 
-        Composer(
-            input = input,
-            onInputChange = { input = it },
-            sending = sending,
-            hasImage = attachedImage != null,
-            onImagePicked = { uri -> scope.launch { attachedImage = viewModel.prepareImage(uri) } },
-            onClearImage = { attachedImage = null },
-            onSend = {
-                viewModel.send(input, attachedImage)
-                input = ""
-                attachedImage = null
-            },
-            onStop = { viewModel.stop() },
-            depth = depth,
-        )
-    }
+            Composer(
+                input = input,
+                onInputChange = { input = it },
+                sending = sending,
+                hasImage = attachedImage != null,
+                onImagePicked = { uri -> scope.launch { attachedImage = viewModel.prepareImage(uri) } },
+                onClearImage = { attachedImage = null },
+                onSend = {
+                    viewModel.send(input, attachedImage)
+                    input = ""
+                    attachedImage = null
+                },
+                onStop = { viewModel.stop() },
+                depth = depth,
+            )
+        }
     }
 }
 
@@ -514,6 +514,16 @@ private fun Composer(
                 )
             }
         } else {
+            val sendFill = if (enabled) {
+                Brush.linearGradient(
+                    0f to Amber.copy(alpha = 0.55f),
+                    1f to Amber,
+                    start = Offset.Zero,
+                    end = Offset(300f, 300f),
+                )
+            } else {
+                SolidColor(MaterialTheme.colorScheme.outline)
+            }
             IconButton(
                 onClick = onSend,
                 enabled = enabled,
@@ -526,16 +536,7 @@ private fun Composer(
                         glow = if (enabled) 0.9f else 0f,
                     )
                     .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            0f to Amber.copy(alpha = 0.55f),
-                            1f to Amber,
-                            start = Offset(0f, 0f),
-                            end = Offset(300f, 300f),
-                        )
-                        if (enabled
-                        else SolidColor(MaterialTheme.colorScheme.outline)
-                    )
+                    .background(sendFill)
                     .sheen(depth.sheenColor),
             ) {
                 Icon(
