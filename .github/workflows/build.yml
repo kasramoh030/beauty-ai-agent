@@ -71,20 +71,22 @@ jobs:
 
           tail -n 20 /tmp/build.log
 
-          # Commit statuses are the one output channel that is always readable
-          # through the API, so mirror the failure lines there too.
+          # The check-run summary is readable straight from the API, so write the
+          # failing lines there when the annotations cannot be trusted.
           if [ "$status" -ne 0 ]; then
-            n=0
-            while IFS= read -r line; do
-              n=$((n+1))
-              [ "$n" -gt 12 ] && break
-              short=$(printf '%s' "$line" | tr '\n' ' ' | cut -c1-130)
-              curl -s -X POST \
+            CID=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+                    -H "Accept: application/vnd.github+json" \
+                    "https://api.github.com/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" \
+                  | jq -r '.check_runs[0].id')
+            if [ -n "$CID" ] && [ "$CID" != "null" ]; then
+              jq -Rs '{title: "Gradle build failed",
+                       summary: (. | .[0:60000])}' < /tmp/messages.txt > /tmp/out.json
+              curl -s -X PATCH \
                 -H "Authorization: Bearer $GITHUB_TOKEN" \
                 -H "Accept: application/vnd.github+json" \
-                "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
-                -d "state=failure" -d "context=build-error-$n" -d "description=$short" > /dev/null
-            done < /tmp/messages.txt
+                "https://api.github.com/repos/$GITHUB_REPOSITORY/check-runs/$CID" \
+                --data @/tmp/out.json > /dev/null
+            fi
           fi
 
           exit $status
