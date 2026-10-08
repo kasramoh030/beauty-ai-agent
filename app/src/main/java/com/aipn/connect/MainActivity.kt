@@ -122,7 +122,7 @@ fun ApnRoot() {
                 ) {
                     ChatDrawer(
                         history = history,
-                        activeId = null,
+                        activeId = viewModel.activeSessionId(),
                         onNewChat = viewModel::newChat,
                         onOpenSession = { id -> viewModel.openSession(id); page = Page.CHAT },
                         onDeleteSession = viewModel::deleteSession,

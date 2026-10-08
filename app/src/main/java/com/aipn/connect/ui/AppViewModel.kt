@@ -11,6 +11,9 @@ import com.aipn.connect.ThemeChoice
 import com.aipn.connect.data.KeyVault
 import com.aipn.connect.data.Provider
 import com.aipn.connect.data.Providers
+import com.aipn.connect.data.Session
+import com.aipn.connect.data.SessionStore
+import com.aipn.connect.data.StoredMessage
 import com.aipn.connect.net.ChatEngine
 import com.aipn.connect.net.Http
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +23,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.util.UUID
 
 data class UiMessage(
     val id: Long,
@@ -31,19 +35,28 @@ data class UiMessage(
     val model: String? = null,
     val pending: Boolean = false,
     val error: String? = null,
-    val fellBackFrom: String? = null,
 )
 
-data class KeyStatus(
+/** One provider row on the keys page. */
+data class KeyCardState(
     val provider: Provider,
-    val hasKey: Boolean,
-    val enabled: Boolean,
-    val model: String,
+    val key: String = "",
+    val customModels: String = "",
+    val model: String = "",
+    val hasKey: Boolean = false,
+    val enabled: Boolean = true,
     val testing: Boolean = false,
-    val result: String? = null,
-    val models: List<String> = emptyList(),
+    val testResult: String? = null,
+    val availableModels: List<String> = emptyList(),
     val requests: Int = 0,
-)
+) {
+    /** Hand-written models first, then whatever the provider reported, then the defaults. */
+    val models: List<String>
+        get() {
+            val custom = customModels.split(',').map { it.trim() }.filter { it.isNotEmpty() }
+            return (custom + availableModels + provider.models).distinct()
+        }
+}
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -51,6 +64,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val vault: KeyVault = app.keyVault
     val prefs = PreferenceStore(application)
     private val engine = ChatEngine(vault)
+    private val sessionStore = SessionStore(application)
 
     private val _messages = MutableStateFlow<List<UiMessage>>(emptyList())
     val messages = _messages.asStateFlow()
@@ -58,15 +72,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _sending = MutableStateFlow(false)
     val sending = _sending.asStateFlow()
 
-    private val _keys = MutableStateFlow(
-        Providers.ALL.map { KeyStatus(it, vault.hasKey(it.id), vault.isEnabled(it.id), vault.modelFor(it.id), requests = vault.requestCount(it.id)) }
-    )
-    val keys = _keys.asStateFlow()
+    private val _cards = MutableStateFlow(Providers.ALL.map { KeyCardState(it) })
+    val cards = _cards.asStateFlow()
+
+    private val _chatHistory = MutableStateFlow<List<Session>>(emptyList())
+    val chatHistory = _chatHistory.asStateFlow()
 
     private val _settings = MutableStateFlow(SettingsState())
     val settings = _settings.asStateFlow()
 
     private var sendJob: Job? = null
+    private var sessionId: String = UUID.randomUUID().toString().take(8)
 
     data class SettingsState(
         val theme: ThemeChoice = ThemeChoice.SYSTEM,
@@ -81,7 +97,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         reloadSettings()
-        refreshKeys()
+        refreshCards()
+        _chatHistory.value = sessionStore.load()
+        openSession(_chatHistory.value.firstOrNull()?.id)
     }
 
     private fun reloadSettings() {
@@ -97,13 +115,16 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
-    fun refreshKeys() {
-        _keys.value = Providers.ALL.map { provider ->
-            KeyStatus(
+    fun refreshCards() {
+        val custom = vault.customModels()
+        _cards.value = Providers.ALL.map { provider ->
+            KeyCardState(
                 provider = provider,
+                key = vault.apiKey(provider.id) ?: "",
+                customModels = custom[provider.id] ?: "",
+                model = vault.modelFor(provider.id),
                 hasKey = vault.hasKey(provider.id),
                 enabled = vault.isEnabled(provider.id),
-                model = vault.modelFor(provider.id),
                 requests = vault.requestCount(provider.id),
             )
         }
@@ -118,40 +139,59 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun setMaxTokens(value: Int) { prefs.maxTokens = value.coerceIn(128, 32768); reloadSettings() }
     fun setStreaming(value: Boolean) { prefs.streaming = value; reloadSettings() }
     fun setAutoFallback(value: Boolean) { prefs.autoFallback = value; reloadSettings() }
-
-    fun resetStats() { vault.resetStats(); reloadSettings(); refreshKeys() }
+    fun resetStats() { vault.resetStats(); reloadSettings(); refreshCards() }
 
     // ---- keys ---------------------------------------------------------------
 
-    fun setKey(providerId: String, value: String) {
-        if (value.isBlank()) vault.clearApiKey(providerId) else vault.setApiKey(providerId, value.trim())
-        refreshKeys()
+    /** Local text of the key field, committed only when the user saves. */
+    fun setDraftKey(providerId: String, value: String) =
+        _cards.value = _cards.value.map { if (it.provider.id == providerId) it.copy(key = value) else it }
+
+    fun setDraftModels(providerId: String, value: String) =
+        _cards.value = _cards.value.map { if (it.provider.id == providerId) it.copy(customModels = value) else it }
+
+    fun saveKey(providerId: String) {
+        val card = _cards.value.firstOrNull { it.provider.id == providerId } ?: return
+        vault.setApiKey(providerId, card.key.trim())
+        vault.setCustomModels(providerId, card.customModels)
+        refreshCards()
     }
 
-    fun setAccountId(providerId: String, value: String) {
-        vault.setAccountId(providerId, value)
-        refreshKeys()
+    fun removeKey(providerId: String) {
+        vault.clearApiKey(providerId)
+        refreshCards()
     }
 
     fun setEnabled(providerId: String, enabled: Boolean) {
         vault.setEnabled(providerId, enabled)
-        refreshKeys()
+        refreshCards()
     }
 
     fun setModel(providerId: String, model: String) {
         vault.setModelFor(providerId, model)
-        refreshKeys()
+        refreshCards()
+    }
+
+    fun currentModel(): String {
+        val provider = candidates().firstOrNull() ?: return Providers.ALL.first().defaultModel
+        return vault.resolvedModel(provider)
     }
 
     fun testKey(providerId: String) {
         val provider = Providers.byId(providerId) ?: return
-        setStatus(providerId) { copy(testing = true, result = null) }
+        _cards.value = _cards.value.map {
+            if (it.provider.id == providerId) it.copy(testing = true, testResult = null) else it
+        }
         viewModelScope.launch {
             val result = engine.listModels(provider)
-            val label = if (result.ok) "${result.models.size} models" else Http.explain(IllegalStateException(result.error ?: "failed"))
-            vault.setStatus(providerId, if (result.ok) "ok" else "error", result.models.size)
-            setStatus(providerId) {
-                copy(testing = false, result = label, models = if (result.ok) result.models else models)
+            _cards.value = _cards.value.map {
+                if (it.provider.id == providerId) {
+                    it.copy(
+                        testing = false,
+                        testResult = if (result.ok) "${result.models.size} models" else result.error,
+                        availableModels = if (result.ok) result.models else it.availableModels,
+                    )
+                } else it
             }
         }
     }
@@ -160,24 +200,83 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         val provider = Providers.byId(providerId) ?: return
         viewModelScope.launch {
             val result = engine.listModels(provider)
-            setStatus(providerId) {
-                if (result.ok) copy(models = result.models, result = "${result.models.size} models")
-                else copy(result = result.error)
+            _cards.value = _cards.value.map {
+                if (it.provider.id == providerId) {
+                    it.copy(
+                        availableModels = result.models.ifEmpty { it.availableModels },
+                        testResult = if (result.ok) "${result.models.size} models" else it.testResult,
+                    )
+                } else it
             }
         }
     }
 
-    private fun setStatus(providerId: String, block: KeyStatus.() -> KeyStatus) {
-        _keys.value = _keys.value.map { if (it.provider.id == providerId) it.block() else it }
+    // ---- chat history -------------------------------------------------------
+
+    fun newChat() {
+        stop()
+        sessionId = UUID.randomUUID().toString().take(8)
+        _messages.value = emptyList()
+    }
+
+    fun openSession(id: String?) {
+        val session = _chatHistory.value.firstOrNull { it.id == id } ?: return
+        stop()
+        sessionId = session.id
+        _messages.value = session.messages.mapIndexed { index, m ->
+            UiMessage(
+                id = System.nanoTime() + index,
+                role = m.role,
+                text = m.text,
+                providerName = m.provider,
+                model = m.model,
+                error = m.error,
+            )
+        }
+    }
+
+    fun activeSessionId(): String? =
+        if (_messages.value.isEmpty()) null else sessionId
+
+    fun deleteSession(id: String) {
+        val remaining = _chatHistory.value.filterNot { it.id == id }
+        sessionStore.save(remaining)
+        _chatHistory.value = remaining
+        if (id == sessionId) newChat()
+    }
+
+    fun deleteAllSessions() {
+        sessionStore.clear()
+        _chatHistory.value = emptyList()
+        newChat()
+    }
+
+    private fun persist() {
+        val stored = _messages.value
+            .filter { it.text.isNotBlank() || it.error != null }
+            .map { StoredMessage(it.role, it.text, it.providerName, it.model, it.error) }
+        if (stored.isEmpty()) return
+        val title = stored.first { it.role == "user" }.text.take(40)
+        val updated = (_chatHistory.value.filterNot { it.id == sessionId } +
+            Session(sessionId, title, System.currentTimeMillis(), stored))
+            .sortedByDescending { it.createdAt }
+        sessionStore.save(updated)
+        _chatHistory.value = updated
     }
 
     // ---- chat ---------------------------------------------------------------
 
-    /** Providers the router may use, in fallback order. */
     private fun candidates(): List<Provider> {
         val enabled = engine.fallbackOrder(vault.enabledIds())
         return if (prefs.autoFallback) enabled else enabled.take(1)
     }
+
+    fun activeModel(): Pair<String, String>? {
+        val provider = candidates().firstOrNull() ?: return null
+        return provider.name to vault.resolvedModel(provider)
+    }
+
+    fun suggestedProvider(): Provider? = candidates().firstOrNull() ?: Providers.byId("gemini")
 
     fun send(text: String, image: Pair<String, String>? = null) {
         if (text.isBlank() && image == null) return
@@ -191,16 +290,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             imageData = image?.second,
         )
         val pendingId = System.nanoTime() + 1
-        val placeholder = UiMessage(id = pendingId, role = "assistant", text = "", pending = true)
-        _messages.value = _messages.value + userMessage + placeholder
+        _messages.value = _messages.value + userMessage +
+            UiMessage(id = pendingId, role = "assistant", text = "", pending = true)
 
         _sending.value = true
         val history = _messages.value
             .filter { it.id != pendingId && it.text.isNotBlank() }
             .map { it.role to it.text }
-
         val providerList = candidates()
-        var failures = 0
 
         sendJob = viewModelScope.launch {
             try {
@@ -214,7 +311,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     streaming = prefs.streaming,
                     image = image,
                 ).collect { turn ->
-                    failures = turn.failedProvider?.let { failures + 1 } ?: failures
                     _messages.value = _messages.value.map { message ->
                         if (message.id == pendingId) {
                             message.copy(
@@ -223,7 +319,6 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                                 providerName = turn.provider.name,
                                 model = turn.model,
                                 error = null,
-                                fellBackFrom = if (turn.failedProvider != null) turn.failedProvider.name else null,
                             )
                         } else message
                     }
@@ -231,30 +326,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             } catch (t: Throwable) {
                 _messages.value = _messages.value.map { message ->
                     if (message.id == pendingId) {
-                        message.copy(
-                            text = "",
-                            pending = false,
-                            error = Http.explain(t),
-                        )
+                        message.copy(text = "", pending = false, error = Http.explain(t))
                     } else message
                 }
             } finally {
                 _sending.value = false
+                persist()
                 reloadSettings()
-                refreshKeys()
+                refreshCards()
             }
         }
     }
-
-    /** The provider the router will use first, together with the model it will ask for. */
-    fun activeModel(): Pair<String, String>? {
-        val provider = candidates().firstOrNull() ?: return null
-        return provider.name to vault.resolvedModel(provider)
-    }
-
-    /** The provider we would suggest adding a key for when nothing is usable yet. */
-    fun suggestedProvider(): Provider? =
-        candidates().firstOrNull() ?: Providers.ALL.firstOrNull { it.id == "gemini" }
 
     fun stop() {
         sendJob?.cancel()
@@ -265,21 +347,23 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     fun regenerate() {
         val user = _messages.value.lastOrNull { it.role == "user" } ?: return
         val image = user.imageMime?.let { mime -> user.imageData?.let { data -> mime to data } }
-        // drop the assistant turn and the user message, then send the same prompt again
         val index = _messages.value.indexOf(user)
         _messages.value = _messages.value.take(index)
         send(user.text, image)
     }
 
-    fun clearChat() { stop(); _messages.value = emptyList() }
+    fun clearChat() {
+        stop()
+        _messages.value = emptyList()
+    }
 
     fun deleteMessage(id: Long) {
         _messages.value = _messages.value.filterNot { it.id == id }
+        persist()
     }
 
     // ---- image attachment ---------------------------------------------------
 
-    /** Loads an image, downsizes it and returns mime + base64, or null when it fails. */
     suspend fun prepareImage(uri: Uri): Pair<String, String>? = withContext(Dispatchers.IO) {
         try {
             val resolver = app.contentResolver
@@ -315,4 +399,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
         return sample
     }
+}
+
+/** Lets screens read the active language without threading it through every call. */
+object LocaleState {
+    var isPersian: Boolean = false
 }

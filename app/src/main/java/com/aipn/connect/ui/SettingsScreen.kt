@@ -82,8 +82,7 @@ fun SettingsScreen(viewModel: AppViewModel, onClose: () -> Unit, openUrl: (Strin
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                            status.provider.customModels.split(',').firstOrNull()?.takeIf { it.isNotBlank() }
-                            ?: status.provider.defaultModel,
+                            status.model.ifBlank { status.provider.defaultModel },
                             style = MaterialTheme.typography.titleMedium,
                         )
                     }

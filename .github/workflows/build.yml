@@ -48,9 +48,11 @@ jobs:
           # which stays readable through the API even when job logs are not.
           {
             echo "===== kotlin / javac errors ====="
-            grep -aE "^e: |^> Task .* FAILED|error: " /tmp/build.log | head -40
+            grep -aE "^e: |^> Task .* FAILED|error: " /tmp/build.log | head -40 || true
             echo "===== what went wrong ====="
-            grep -a -A 15 "What went wrong" /tmp/build.log | head -25
+            grep -a -A 15 "What went wrong" /tmp/build.log | head -25 || true
+            echo "===== tail ====="
+            tail -n 20 /tmp/build.log || true
           } > /tmp/errors.txt
 
           python3 - <<'PY'
