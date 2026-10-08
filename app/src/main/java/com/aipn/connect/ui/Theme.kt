@@ -65,11 +65,11 @@ private val LightColors = lightColorScheme(
 
 /** Vazirmatn - the geometric Persian face used by the reference design. */
 val Vazir = FontFamily(
-    Font(R.font.vazirmatn_regular, FontWeight.Normal),
-    Font(R.font.vazirmatn_medium, FontWeight.Medium),
-    Font(R.font.vazirmatn_semibold, FontWeight.SemiBold),
-    Font(R.font.vazirmatn_bold, FontWeight.Bold),
-    Font(R.font.vazirmatn_black, FontWeight.Black),
+    Font(R.font.vazirmatnregular, FontWeight.Normal),
+    Font(R.font.vazirmatnmedium, FontWeight.Medium),
+    Font(R.font.vazirmatnsemibold, FontWeight.SemiBold),
+    Font(R.font.vazirmatnbold, FontWeight.Bold),
+    Font(R.font.vazirmatnblack, FontWeight.Black),
 )
 
 private val AppTypography = Typography(
