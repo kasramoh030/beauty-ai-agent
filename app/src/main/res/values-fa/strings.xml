@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI APN Connect</string>
+    <string name="tagline">چت هوش مصنوعی</string>
+
+    <!-- Navigation -->
+    <string name="nav_chat">چت</string>
+    <string name="nav_keys">کلیدها</string>
+    <string name="nav_settings">تنظیمات</string>
+
+    <!-- Chat -->
+    <string name="chat_title">گفتگو</string>
+    <string name="chat_hint">پیامت را بنویس…</string>
+    <string name="chat_empty_title">از چه چیزی بپرسیم؟</string>
+    <string name="chat_empty_body">با هوش مصنوعی حرف بزن. کلیدهای رایگانی که داری را اضافه کن تا بدون هزینه جواب بگیری.</string>
+    <string name="chat_send">ارسال</string>
+    <string name="chat_stop">توقف</string>
+    <string name="chat_regenerate">ارسال دوباره</string>
+    <string name="chat_copy">کپی</string>
+    <string name="chat_copied">کپی شد</string>
+    <string name="chat_clear">پاک‌کردن گفتگو</string>
+    <string name="chat_new">گفتگوی جدید</string>
+    <string name="chat_attach">پیوست تصویر</string>
+    <string name="chat_thinking">در حال پردازش…</string>
+    <string name="chat_auto_fallback">جایگزینی خودکار</string>
+    <string name="chat_auto_fallback_desc">اگر سرویسی خطا دهد یا به سقف درخواست بخورد، به‌طور خودکار سراغ سرویس بعدی میرود.</string>
+    <string name="chat_vision_hint">این مدل بینایی دارد؛ میتوانی تصویر پیوست کنی.</string>
+    <string name="chat_no_key">هنوز کلیدی ثبت نشده</string>
+    <string name="chat_no_key_body">در تب «کلیدها» کلید رایگان خودت را اضافه کن، یا یک سرویس بدون کلید را روشن کن.</string>
+    <string name="chat_open_keys">رفتن به کلیدها</string>
+    <string name="chat_failed">ناموفق</string>
+    <string name="chat_answered_by">پاسخ از %1$s</string>
+    <string name="chat_fell_back_to">سوییچ به %1$s</string>
+
+    <!-- Keys -->
+    <string name="keys_title">کلیدهای API</string>
+    <string name="keys_intro">کلیدهای رایگانی که خودت داری را اضافه کن. این کلیدها با Keystore اندروید روی همین دستگاه رمزنگاری میشوند و جز داخل خود درخواست، جایی فرستاده نمیشوند.</string>
+    <string name="keys_empty">هنوز کلیدی ذخیره نشده</string>
+    <string name="keys_add">افزودن کلید</string>
+    <string name="keys_edit">ویرایش کلید</string>
+    <string name="keys_delete">حذف</string>
+    <string name="keys_delete_confirm">کلید سرویس %1$s حذف شود؟ خودِ کلید تا وقتی در پنل آن سرویس لغوش نکنی معتبر میماند.</string>
+    <string name="keys_get_free">کلید رایگان بگیر</string>
+    <string name="keys_docs">مستندات</string>
+    <string name="keys_free_tier">لایه رایگان</string>
+    <string name="keys_configured">%1$d تنظیم‌شده</string>
+    <string name="keys_test">تست</string>
+    <string name="keys_testing">در حال تست…</string>
+    <string name="keys_ok">سالم · %1$d مدل</string>
+    <string name="keys_bad">کلید رد شد</string>
+    <string name="keys_model_count">%1$d مدل</string>
+    <string name="keys_retry_later">محدودیت درخواست</string>
+    <string name="keys_show">نمایش</string>
+    <string name="keys_hide">پنهان</string>
+    <string name="keys_enabled">فعال</string>
+    <string name="keys_no_key_needed">بدون کلید</string>
+    <string name="keys_used">%1$d درخواست در این نشست</string>
+
+    <!-- Key dialog -->
+    <string name="key_dialog_new">افزودن کلید</string>
+    <string name="key_dialog_edit">ویرایش کلید</string>
+    <string name="key_dialog_provider">سرویس</string>
+    <string name="key_dialog_value">کلید API</string>
+    <string name="key_dialog_value_hint">کلید را از پنل سرویس کپی کن</string>
+    <string name="key_dialog_account">شناسه حساب (اختیاری)</string>
+    <string name="key_dialog_save">ذخیره</string>
+    <string name="key_dialog_cancel">انصراف</string>
+    <string name="key_dialog_saved">کلید ذخیره شد</string>
+    <string name="key_dialog_paste">چسباندن</string>
+
+    <!-- Settings -->
+    <string name="settings_title">تنظیمات</string>
+    <string name="settings_model">مدل</string>
+    <string name="settings_model_pick">انتخاب مدل</string>
+    <string name="settings_model_refresh">به‌روزرسانی مدل‌ها</string>
+    <string name="settings_model_auto">خودکار (پیش‌فرض سرویس)</string>
+    <string name="settings_model_auto_desc">بگذار هر سرویس مدل پیش‌فرض خودش را انتخاب کند</string>
+    <string name="settings_system_prompt">پیام سیستمی</string>
+    <string name="settings_system_prompt_hint">دستورالعمل اختیاری برای دستیار</string>
+    <string name="settings_temperature">دمای پاسخ · %1$.1f</string>
+    <string name="settings_max_tokens">حداکثر توکن خروجی</string>
+    <string name="settings_generation">تنظیمات تولید پاسخ</string>
+    <string name="settings_max_tokens_value">حداکثر توکن خروجی: %1$d</string>
+    <string name="settings_streaming">پخش زنده</string>
+    <string name="settings_streaming_desc">پاسخ را کلمه‌به‌کلمه هنگام رسیدن نشان بده</string>
+    <string name="settings_theme">پوسته</string>
+    <string name="settings_theme_system">سیستم</string>
+    <string name="settings_theme_light">روشن</string>
+    <string name="settings_theme_dark">تاریک</string>
+    <string name="settings_theme_midnight">نیمه‌شب</string>
+    <string name="settings_theme_oled">سیاه OLED</string>
+    <string name="settings_theme_sand">شنی</string>
+    <string name="settings_theme_ocean">اقیانوسی</string>
+    <string name="settings_language">زبان</string>
+    <string name="settings_language_system">سیستم</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_fa">فارسی</string>
+    <string name="settings_usage">مصرف در این نشست</string>
+    <string name="settings_about">درباره</string>
+    <string name="settings_about_body">اپ «AI APN Connect» با کلیدهای رایگانی که خودت دارید با سرویس‌های هوش مصنوعی حرف می‌زند. کلیدها روی همین دستگاه رمزنگاری‌شده میمانند. لایه رایگان هر سرویس را خودش ارائه میکند و ممکن است تغییر کند.</string>
+    <string name="settings_version">نسخه %1$s</string>
+    <string name="settings_clear_history">پاک‌کردن همه گفتگوها</string>
+    <string name="settings_clear_history_done">گفتگوها پاک شد</string>
+
+    <!-- Common -->
+    <string name="common_save">ذخیره</string>
+    <string name="common_close">بستن</string>
+    <string name="common_error">خطا</string>
+    <string name="common_retry">تلاش دوباره</string>
+    <string name="common_back">بازگشت</string>
+    <string name="common_optional">اختیاری</string>
+    <string name="common_history">تاریخچه</string>
+    <string name="common_no_history">هنوز گفتگویی نیست</string>
+    <string name="common_rename">تغییر نام</string>
+    <string name="common_untitled">گفتگوی جدید</string>
+    <!-- Active model / add-key, mirroring the reference UI -->
+    <string name="active_model">مدل فعال: %1$s · %2$s</string>
+    <string name="active_model_none">هنوز هیچ مدلی فعال نیست</string>
+    <string name="add_key_for">افزودن کلید %1$s</string>
+    <string name="models_title">مدل‌ها</string>
+    <!-- Reference UI copy -->
+    <string name="keys_title_page">کلیدهای API</string>
+    <string name="keys_privacy_note">کلیدها فقط روی همین دستگاه ذخیره میشوند و هیچ‌وقت به سرویس‌دهنده ارسال میشوند.</string>
+    <string name="keys_get_key">دریافت کلید</string>
+    <string name="keys_badge_free">رایگان</string>
+    <string name="keys_api_key_label">کلید API</string>
+    <string name="keys_custom_models">مدل‌های سفارشی (با کاما جدا کنید)</string>
+    <string name="keys_save">ذخیره</string>
+    <string name="keys_saved">ذخیره شد</string>
+    <string name="search_models">جستجوی مدل…</string>
+    <string name="new_chat">گفتگوی جدید</string>
+    <string name="drawer_open">منو</string>
+    <string name="drawer_close">بستن</string>
+    <string name="search_keys">کلیدهای API</string>
+    <string name="send_message">پیام خود را بنویسید…</string>
+    <string name="settings_gear">تنظیمات</string>
+    <string name="chat_deleted">گفتگو حذف شد</string>
+    <string name="no_chats">هنوز گفتگویی ندارید</string>
+    <string name="custom">سفارشی</string>
+    <string name="remove_key">حذف کلید</string>
+    <string name="key_stored">کلید ذخیره شد</string>
+    <string name="key_missing">هنوز کلیدی وارد نشده</string>
+    <string name="app_short_name">کلید</string>
+    <string name="keys_free_tier_short">لایه رایگان بدون کارت بانکی</string>
+    <string name="settings_title_page">تنظیمات</string>
+    <string name="settings_source">کد منبع</string>
+</resources>

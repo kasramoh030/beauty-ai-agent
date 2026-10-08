@@ -1,3 +1,18 @@
-.env
-__pycache__/
-*.pyc
+# Gradle
+.gradle/
+build/
+local.properties
+captures/
+
+# Android / IDE
+*.apk
+*.aab
+*.keystore
+!gradle/wrapper/gradle-wrapper.jar
+.idea/
+*.iml
+.DS_Store
+
+# Secrets
+*.properties.local
+local.properties

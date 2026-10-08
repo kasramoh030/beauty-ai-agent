@@ -1,0 +1,103 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main, 'arena/**' ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Pinned to 8.9: AGP 8.5.x does not run on Gradle 9.
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Create signing keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore app/apn-release.keystore \
+            -alias apn \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass android -keypass android \
+            -dname "CN=AI APN Connect, O=APN, C=IR"
+
+      - name: Build debug and release
+        run: |
+          # Actions runs `bash -e`, so failures must be captured instead of aborting.
+          set +e
+          gradle assembleDebug assembleRelease --no-daemon --stacktrace > /tmp/build.log 2>&1
+          status=$?
+
+          # Emit one short annotation per interesting line. Long or multi-line
+          # messages are rejected by the workflow parser, so they are split up.
+          python3 - <<'PYEOF'
+          import re
+          try:
+              lines = open('/tmp/build.log', encoding='utf-8', errors='replace').read().splitlines()
+          except Exception as exc:
+              lines = ['could not read build log: %s' % exc]
+          pat = re.compile(r'e: |error|exception|failed|what went wrong|could not|not found|aapt',
+                           re.IGNORECASE)
+          picked = [l for l in lines if pat.search(l)]
+          tail_lines = lines[-18:]
+          merged, seen = [], set()
+          for l in picked[:18] + tail_lines:
+              t = l.strip()[:230]
+              if t and t not in seen:
+                  seen.add(t)
+                  merged.append(t)
+          with open('/tmp/messages.txt', 'w', encoding='utf-8') as fh:
+              fh.write('\n'.join(merged[:30]))
+          for msg in merged[:30]:
+              print('::error file=build.yml,line=1,title=Build failed::' +
+                    msg.replace('%', '%25').replace('\r', '%0D'))
+          PYEOF
+
+          tail -n 20 /tmp/build.log
+
+          # The check-run summary is readable straight from the API, so write the
+          # failing lines there when the annotations cannot be trusted.
+          if [ "$status" -ne 0 ]; then
+            CID=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+                    -H "Accept: application/vnd.github+json" \
+                    "https://api.github.com/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" \
+                  | jq -r '.check_runs[] | select(.name == "build") | .id')
+            if [ -n "$CID" ] && [ "$CID" != "null" ]; then
+              jq -Rs '{title: "Gradle build failed",
+                       summary: (. | .[0:60000])}' < /tmp/messages.txt > /tmp/out.json
+              curl -s -X PATCH \
+                -H "Authorization: Bearer $GITHUB_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/$GITHUB_REPOSITORY/check-runs/$CID" \
+                --data @/tmp/out.json > /dev/null
+            fi
+          fi
+
+          exit $status
+
+      - name: Upload APKs
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-apn-connect-apk
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
