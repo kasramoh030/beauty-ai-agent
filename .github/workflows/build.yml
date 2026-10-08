@@ -77,7 +77,7 @@ jobs:
             CID=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
                     -H "Accept: application/vnd.github+json" \
                     "https://api.github.com/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs" \
-                  | jq -r '.check_runs[0].id')
+                  | jq -r '.check_runs[] | select(.name == "build") | .id')
             if [ -n "$CID" ] && [ "$CID" != "null" ]; then
               jq -Rs '{title: "Gradle build failed",
                        summary: (. | .[0:60000])}' < /tmp/messages.txt > /tmp/out.json
