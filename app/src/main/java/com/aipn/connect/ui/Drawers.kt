@@ -64,6 +64,7 @@ fun ChatDrawer(
     onOpenKeys: () -> Unit,
     onClose: () -> Unit,
 ) {
+    val depth = rememberDepth()
     Column(
         Modifier
             .fillMaxHeight()
@@ -122,14 +123,17 @@ fun ChatDrawer(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 items(history, key = { it.id }) { session ->
+                    val rowShape = RoundedCornerShape(14.dp)
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
+                            .raised(depth, rowShape, elevation = if (session.id == activeId) 8.dp else 2.dp)
+                            .clip(rowShape)
                             .background(
                                 if (session.id == activeId) SelectedTeal
                                 else MaterialTheme.colorScheme.surfaceVariant
                             )
+                            .rimLight(depth, rowShape)
                             .clickable {
                                 onOpenSession(session.id)
                                 onClose()
@@ -161,11 +165,14 @@ fun ChatDrawer(
 
         Spacer(Modifier.height(12.dp))
 
+        val keysShape = CircleShape
         Row(
             Modifier
                 .fillMaxWidth()
-                .clip(CircleShape)
+                .raised(depth, keysShape, elevation = 8.dp)
+                .clip(keysShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
+                .rimLight(depth, keysShape)
                 .clickable {
                     onOpenKeys()
                     onClose()
@@ -184,11 +191,21 @@ fun ChatDrawer(
 
 @Composable
 private fun AmberPillButton(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+    val depth = rememberDepth()
     Row(
         Modifier
             .fillMaxWidth()
+            .raised(depth, CircleShape, elevation = 12.dp, glow = 0.8f)
             .clip(CircleShape)
-            .background(Amber)
+            .background(
+                androidx.compose.ui.graphics.Brush.linearGradient(
+                    0f to Amber.copy(alpha = 0.72f),
+                    1f to Amber,
+                    start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                    end = androidx.compose.ui.geometry.Offset(0f, 400f),
+                )
+            )
+            .sheen(depth.sheenColor)
             .clickable(onClick = onClick)
             .padding(vertical = 14.dp),
         horizontalArrangement = Arrangement.Center,
@@ -208,12 +225,15 @@ fun ModelSheet(
 ) {
     val cards by viewModel.cards.collectAsStateWithLifecycle()
     var query by remember { mutableStateOf("") }
+    val depth = rememberDepth()
+    val sheetShape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
 
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp))
+            .clip(sheetShape)
             .background(MaterialTheme.colorScheme.surface)
+            .rimLight(depth, sheetShape)
             .padding(horizontal = 18.dp),
     ) {
         Spacer(Modifier.height(14.dp))
@@ -222,7 +242,7 @@ fun ModelSheet(
             TextField(
                 value = query,
                 onValueChange = { query = it },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).sunken(depth, RoundedCornerShape(14.dp)),
                 placeholder = { Text(stringResource(R.string.search_models)) },
                 singleLine = true,
                 shape = RoundedCornerShape(14.dp),
@@ -279,11 +299,13 @@ fun ModelSheet(
                 ) { index ->
                     val model = models[index]
                     val selected = card.model == model
+                    val rowShape = RoundedCornerShape(12.dp)
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(rowShape)
                             .background(if (selected) SelectedTeal else Color.Transparent)
+                            .rimLight(depth, rowShape)
                             .clickable {
                                 viewModel.setModel(card.provider.id, model)
                                 onDismiss()

@@ -1,5 +1,7 @@
 package com.aipn.connect.ui
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -49,11 +51,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -63,26 +70,68 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aipn.connect.R
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Base64
 
-/** The app mark: an amber four-point sparkle on a teal tile, as in the reference. */
+/**
+ * The app mark: the glossy amber sparkle on a teal plate. The raster artwork is
+ * loaded off the main thread and carries its own painted depth, so it only needs
+ * a drop shadow to sit in the layout; the vector below is the fallback for the
+ * few milliseconds before the bitmap is ready.
+ */
 @Composable
 fun AppMark(size: androidx.compose.ui.unit.Dp = 56.dp, corner: androidx.compose.ui.unit.Dp = 16.dp) {
+    val depth = rememberDepth()
+    val shape = RoundedCornerShape(corner)
+    val bitmap = rememberMarkBitmap()
+
     Box(
         Modifier
             .size(size)
-            .clip(RoundedCornerShape(corner))
-            .background(Teal),
+            .raised(depth, shape, elevation = 14.dp, glow = 0.5f)
+            .clip(shape),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = Icons.Rounded.Bolt,
-            contentDescription = null,
-            tint = Amber,
-            modifier = Modifier.size(size * 0.5f),
-        )
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(size),
+            )
+        } else {
+            Box(
+                Modifier
+                    .size(size)
+                    .background(Teal, shape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Bolt,
+                    contentDescription = null,
+                    tint = Amber,
+                    modifier = Modifier.size(size * 0.5f),
+                )
+            }
+        }
     }
+}
+
+@Composable
+private fun rememberMarkBitmap(): ImageBitmap? {
+    val context = LocalContext.current
+    var bitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(context) {
+        bitmap = withContext(Dispatchers.IO) {
+            runCatching {
+                BitmapFactory.decodeResource(context.resources, R.drawable.mark_3d)
+                    ?.asImageBitmap()
+            }.getOrNull()
+        }
+    }
+    return bitmap
 }
 
 @Composable
@@ -103,12 +152,14 @@ fun ChatScreen(
     val clipboard = LocalClipboardManager.current
 
     val model = viewModel.currentModel()
+    val depth = rememberDepth()
 
     LaunchedEffect(messages.size, sending) {
         val target = messages.size - 1
         if (target >= 0) listState.animateScrollToItem(target)
     }
 
+    AmbientBackground(depth) {
     Column(Modifier.fillMaxSize()) {
 
         ChatTopBar(
@@ -152,7 +203,9 @@ fun ChatScreen(
                 attachedImage = null
             },
             onStop = { viewModel.stop() },
+            depth = depth,
         )
+    }
     }
 }
 
@@ -164,6 +217,7 @@ private fun ChatTopBar(
     onSettings: () -> Unit,
     onModel: () -> Unit,
 ) {
+    val depth = rememberDepth()
     Row(
         Modifier
             .fillMaxWidth()
@@ -183,9 +237,10 @@ private fun ChatTopBar(
         Row(
             Modifier
                 .weight(1f)
+                .raised(depth, CircleShape, elevation = 8.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                .rimLight(depth, CircleShape)
                 .clickable(onClick = onModel)
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -224,6 +279,7 @@ private fun ChatTopBar(
 private fun EmptyState(viewModel: AppViewModel, onOpenKeys: () -> Unit) {
     val active by remember { mutableStateOf(viewModel.activeModel()) }
     val suggested = remember { viewModel.suggestedProvider() }
+    val depth = rememberDepth()
 
     Column(
         Modifier
@@ -231,9 +287,9 @@ private fun EmptyState(viewModel: AppViewModel, onOpenKeys: () -> Unit) {
             .padding(top = 48.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        AppMark(size = 64.dp, corner = 18.dp)
+        AppMark(size = 84.dp, corner = 22.dp)
 
-        Spacer(Modifier.height(22.dp))
+        Spacer(Modifier.height(26.dp))
 
         Text(
             stringResource(R.string.chat_empty_title),
@@ -255,17 +311,24 @@ private fun EmptyState(viewModel: AppViewModel, onOpenKeys: () -> Unit) {
         )
 
         if (active == null && suggested != null) {
-            Spacer(Modifier.height(26.dp))
-            Text(
-                stringResource(R.string.add_key_for, suggested.name),
-                style = MaterialTheme.typography.titleMedium,
-                color = Amber,
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .border(1.dp, Amber, CircleShape)
+            Spacer(Modifier.height(30.dp))
+            val pillShape = CircleShape
+            Box(
+                Modifier
+                    .raised(depth, pillShape, elevation = 10.dp, glow = 0.7f)
+                    .clip(pillShape)
+                    .background(Amber.copy(alpha = 0.14f))
+                    .rimLight(depth, pillShape)
                     .clickable(onClick = onOpenKeys)
-                    .padding(horizontal = 22.dp, vertical = 12.dp),
-            )
+                    .padding(horizontal = 24.dp, vertical = 13.dp),
+            ) {
+                Text(
+                    stringResource(R.string.add_key_for, suggested.name),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Amber,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
     }
 }
@@ -278,19 +341,22 @@ private fun MessageBubble(
     onDelete: () -> Unit,
 ) {
     val isUser = message.role == "user"
+    val depth = rememberDepth()
+    val bubbleShape = RoundedCornerShape(20.dp)
     Column(
         Modifier.fillMaxWidth(),
         horizontalAlignment = if (isUser) Alignment.End else Alignment.Start,
     ) {
         Column(
             Modifier
-                .widthIn()
                 .fillMaxWidth(0.92f)
-                .clip(RoundedCornerShape(20.dp))
+                .raised(depth, bubbleShape, elevation = if (isUser) 8.dp else 4.dp)
+                .clip(bubbleShape)
                 .background(
-                    if (isUser) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                    if (isUser) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
                     else MaterialTheme.colorScheme.surfaceVariant
                 )
+                .rimLight(depth, bubbleShape)
                 .padding(14.dp),
         ) {
             if (message.imageData != null) {
@@ -353,8 +419,6 @@ private fun MessageBubble(
     }
 }
 
-private fun Modifier.widthIn(): Modifier = this
-
 @Composable
 private fun TinyAction(icon: ImageVector, label: String, onClick: () -> Unit) {
     IconButton(onClick = onClick, modifier = Modifier.size(34.dp)) {
@@ -377,10 +441,12 @@ private fun Composer(
     onClearImage: () -> Unit,
     onSend: () -> Unit,
     onStop: () -> Unit,
+    depth: Depth,
 ) {
     val picker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri -> if (uri != null) onImagePicked(uri) }
+    val enabled = input.isNotBlank() || hasImage
 
     Row(
         Modifier
@@ -404,7 +470,7 @@ private fun Composer(
                 .weight(1f)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                .sunken(depth, CircleShape)
                 .padding(horizontal = 16.dp, vertical = 4.dp),
             contentAlignment = Alignment.CenterStart,
         ) {
@@ -430,12 +496,16 @@ private fun Composer(
             )
         }
 
-        Spacer(Modifier.width(10.dp))
+        Spacer(Modifier.width(12.dp))
 
         if (sending) {
             IconButton(
                 onClick = onStop,
-                modifier = Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.error),
+                modifier = Modifier
+                    .size(46.dp)
+                    .raised(depth, CircleShape, elevation = 10.dp, glow = 0.4f)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.error),
             ) {
                 Icon(
                     Icons.Rounded.Stop,
@@ -446,11 +516,27 @@ private fun Composer(
         } else {
             IconButton(
                 onClick = onSend,
-                enabled = input.isNotBlank() || hasImage,
+                enabled = enabled,
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(46.dp)
+                    .raised(
+                        depth,
+                        CircleShape,
+                        elevation = if (enabled) 12.dp else 2.dp,
+                        glow = if (enabled) 0.9f else 0f,
+                    )
                     .clip(CircleShape)
-                    .background(if (input.isNotBlank() || hasImage) Amber else MaterialTheme.colorScheme.outline),
+                    .background(
+                        Brush.linearGradient(
+                            0f to Amber.copy(alpha = 0.55f),
+                            1f to Amber,
+                            start = Offset(0f, 0f),
+                            end = Offset(300f, 300f),
+                        )
+                        if (enabled
+                        else SolidColor(MaterialTheme.colorScheme.outline)
+                    )
+                    .sheen(depth.sheenColor),
             ) {
                 Icon(
                     Icons.Rounded.Send,

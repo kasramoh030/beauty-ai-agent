@@ -1,20 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Four-point sparkle mark, drawn in the safe zone of the 108x108 canvas. -->
+<!--
+  Adaptive-icon foreground: the amber sparkle, built from three parts so it reads
+  as a solid, lit 3D object:
+    1. a blurred-looking glow behind it,
+    2. the body with a vertical metallic gradient,
+    3. a bright facet on the upper-left and a dark one on the lower-right.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- the large four-point star -->
+
+    <!-- 1. warm glow bleeding onto the tile -->
     <path
         android:fillColor="#E9A23B"
-        android:pathData="M54,26 C56.5,42 66,51.5 82,54 C66,56.5 56.5,66 54,82 C51.5,66 42,56.5 26,54 C42,51.5 51.5,42 54,26 Z" />
-    <!-- the small companion sparkle -->
+        android:fillAlpha="0.18"
+        android:pathData="M54,26 C58,46 70,58 90,62 C70,66 58,78 54,98 C50,78 38,66 18,62 C38,58 50,46 54,26 Z" />
+
+    <!-- 2. body -->
+    <path android:pathData="M54,26 C56.5,42 66,51.5 82,54 C66,56.5 56.5,66 54,82 C51.5,66 42,56.5 26,54 C42,51.5 51.5,42 54,26 Z">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:fillColor">
+            <gradient
+                android:startX="34"
+                android:startY="34"
+                android:endX="74"
+                android:endY="74"
+                android:type="linear">
+                <item android:offset="0" android:color="#FFE3B0" />
+                <item android:offset="0.38" android:color="#F3C489" />
+                <item android:offset="0.62" android:color="#E9A23B" />
+                <item android:offset="1" android:color="#B9721F" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- 3. bright facet, upper-left -->
     <path
-        android:fillColor="#F3C489"
-        android:pathData="M74,26 C75,32 80,37 86,38 C80,39 75,44 74,50 C73,44 68,39 62,38 C68,37 73,32 74,26 Z" />
-    <!-- inner cut-out -->
+        android:fillColor="#FFF6E6"
+        android:fillAlpha="0.92"
+        android:pathData="M54,26 C56.5,42 66,51.5 82,54 C66,55 57,52 54,40 Z" />
+
+    <!-- 3. dark facet, lower-right -->
     <path
-        android:fillColor="#12333D"
-        android:pathData="M54,44 C55,49 59,53 64,54 C59,55 55,59 54,64 C53,59 49,55 44,54 C49,53 53,49 54,44 Z" />
+        android:fillColor="#8A5414"
+        android:fillAlpha="0.55"
+        android:pathData="M54,82 C51.5,66 42,56.5 26,54 C42,55 51,58 54,70 Z" />
+
+    <!-- companion sparkle -->
+    <path android:pathData="M74,26 C75,32 80,37 86,38 C80,39 75,44 74,50 C73,44 68,39 62,38 C68,37 73,32 74,26 Z">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:fillColor">
+            <gradient
+                android:startX="62"
+                android:startY="26"
+                android:endX="86"
+                android:endY="50"
+                android:type="linear">
+                <item android:offset="0" android:color="#FFE3B0" />
+                <item android:offset="1" android:color="#E9A23B" />
+            </gradient>
+        </aapt:attr>
+    </path>
 </vector>

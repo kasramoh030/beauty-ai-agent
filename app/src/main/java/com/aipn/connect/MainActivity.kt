@@ -32,8 +32,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.core.os.LocaleListCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.aipn.connect.ui.ApnTheme
@@ -71,6 +76,12 @@ fun ApnRoot() {
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
 
+    val darkSurface = when (settings.theme) {
+        ThemeChoice.LIGHT -> false
+        ThemeChoice.DARK -> true
+        ThemeChoice.SYSTEM -> isSystemInDarkTheme()
+    }
+
     LaunchedEffect(settings.theme) {
         AppCompatDelegate.setDefaultNightMode(
             when (settings.theme) {
@@ -79,6 +90,18 @@ fun ApnRoot() {
                 ThemeChoice.SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
             }
         )
+    }
+
+    // Dark icons on the light theme, light icons on the dark one.
+    val view = LocalView.current
+    LaunchedEffect(darkSurface, view) {
+        if (!view.isInEditMode) {
+            val window = (view.context as? android.app.Activity)?.window ?: return@LaunchedEffect
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !darkSurface
+                isAppearanceLightNavigationBars = !darkSurface
+            }
+        }
     }
     LaunchedEffect(settings.languageTag) {
         val tag = settings.languageTag
@@ -131,7 +154,11 @@ fun ApnRoot() {
                 }
             },
         ) {
-            Box(Modifier.fillMaxSize()) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+            ) {
                 when (page) {
                     Page.CHAT -> ChatScreen(
                         viewModel = viewModel,

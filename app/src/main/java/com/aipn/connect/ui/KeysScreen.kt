@@ -59,7 +59,9 @@ fun KeysScreen(
 ) {
     val cards by viewModel.cards.collectAsStateWithLifecycle()
     var savedProvider by remember { mutableStateOf<String?>(null) }
+    val depth = rememberDepth()
 
+    AmbientBackground(depth) {
     Column(Modifier.fillMaxSize()) {
 
         if (onClose != null) {
@@ -117,6 +119,7 @@ fun KeysScreen(
             item { Spacer(Modifier.height(6.dp)) }
         }
     }
+    }
 }
 
 @Composable
@@ -130,10 +133,15 @@ private fun ProviderKeyCard(
     onToggle: (Boolean) -> Unit,
     onOpenUrl: () -> Unit,
 ) {
+    val depth = rememberDepth()
+    val cardShape = RoundedCornerShape(22.dp)
     Card(
-        Modifier.fillMaxWidth(),
+        Modifier
+            .fillMaxWidth()
+            .raised(depth, cardShape, elevation = 10.dp)
+            .rimLight(depth, cardShape),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        shape = RoundedCornerShape(22.dp),
+        shape = cardShape,
     ) {
         Column(Modifier.padding(16.dp)) {
 
