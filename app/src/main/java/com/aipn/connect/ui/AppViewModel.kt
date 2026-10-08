@@ -132,23 +132,60 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     // ---- settings -----------------------------------------------------------
 
-    fun setTheme(theme: ThemeChoice) { prefs.theme = theme; reloadSettings() }
-    fun setLanguage(tag: String) { prefs.languageTag = tag; reloadSettings() }
-    fun setSystemPrompt(value: String) { prefs.systemPrompt = value; reloadSettings() }
-    fun setTemperature(value: Float) { prefs.temperature = value; reloadSettings() }
-    fun setMaxTokens(value: Int) { prefs.maxTokens = value.coerceIn(128, 32768); reloadSettings() }
-    fun setStreaming(value: Boolean) { prefs.streaming = value; reloadSettings() }
-    fun setAutoFallback(value: Boolean) { prefs.autoFallback = value; reloadSettings() }
-    fun resetStats() { vault.resetStats(); reloadSettings(); refreshCards() }
+    fun setTheme(theme: ThemeChoice) {
+        prefs.theme = theme
+        reloadSettings()
+    }
+
+    fun setLanguage(tag: String) {
+        prefs.languageTag = tag
+        reloadSettings()
+    }
+
+    fun setSystemPrompt(value: String) {
+        prefs.systemPrompt = value
+        reloadSettings()
+    }
+
+    fun setTemperature(value: Float) {
+        prefs.temperature = value
+        reloadSettings()
+    }
+
+    fun setMaxTokens(value: Int) {
+        prefs.maxTokens = value.coerceIn(128, 32768)
+        reloadSettings()
+    }
+
+    fun setStreaming(value: Boolean) {
+        prefs.streaming = value
+        reloadSettings()
+    }
+
+    fun setAutoFallback(value: Boolean) {
+        prefs.autoFallback = value
+        reloadSettings()
+    }
+    fun resetStats() {
+        vault.resetStats()
+        reloadSettings()
+        refreshCards()
+    }
 
     // ---- keys ---------------------------------------------------------------
 
     /** Local text of the key field, committed only when the user saves. */
-    fun setDraftKey(providerId: String, value: String) =
-        _cards.value = _cards.value.map { if (it.provider.id == providerId) it.copy(key = value) else it }
+    fun setDraftKey(providerId: String, value: String) {
+        _cards.value = _cards.value.map {
+            if (it.provider.id == providerId) it.copy(key = value) else it
+        }
+    }
 
-    fun setDraftModels(providerId: String, value: String) =
-        _cards.value = _cards.value.map { if (it.provider.id == providerId) it.copy(customModels = value) else it }
+    fun setDraftModels(providerId: String, value: String) {
+        _cards.value = _cards.value.map {
+            if (it.provider.id == providerId) it.copy(customModels = value) else it
+        }
+    }
 
     fun saveKey(providerId: String) {
         val card = _cards.value.firstOrNull { it.provider.id == providerId } ?: return

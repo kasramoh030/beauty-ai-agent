@@ -16,10 +16,9 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import ModalDrawerSheet
+import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -151,6 +150,7 @@ fun ApnRoot() {
                     Page.SETTINGS -> SettingsScreen(
                         viewModel = viewModel,
                         onClose = { page = Page.CHAT },
+                        openUrl = openUrl,
                     )
                 }
 

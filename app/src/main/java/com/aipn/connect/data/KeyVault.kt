@@ -37,6 +37,7 @@ class KeyVault(context: Context) {
         private const val K_API = "api_"
         private const val K_ENABLED = "enabled_"
         private const val K_MODEL = "model_"
+        private const val K_CUSTOM = "custom_models_"
         private const val K_ACCOUNT = "account_"
         private const val K_STATUS = "status_"
         private const val K_MODEL_COUNT = "model_count_"
@@ -145,6 +146,25 @@ class KeyVault(context: Context) {
         modelFor(provider.id).ifBlank { provider.defaultModel }
 
     // ---- last known test status ---------------------------------------------
+
+    /** Model ids the user typed by hand for a provider, stored comma separated. */
+    fun setCustomModels(providerId: String, value: String) {
+        val normalised = value.split(',')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .joinToString(",")
+        prefs.edit().putString(K_CUSTOM + providerId, normalised).apply()
+    }
+
+    /** All custom-model entries, for a quick lookup at startup. */
+    fun customModels(): Map<String, String> {
+        val result = HashMap<String, String>()
+        for (provider in Providers.ALL) {
+            val value = prefs.getString(K_CUSTOM + provider.id, "") ?: continue
+            if (value.isNotBlank()) result[provider.id] = value
+        }
+        return result
+    }
 
     fun status(providerId: String): String = prefs.getString(K_STATUS + providerId, "") ?: ""
 
