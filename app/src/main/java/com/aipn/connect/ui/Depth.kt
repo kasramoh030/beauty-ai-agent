@@ -52,6 +52,8 @@ data class Depth(
     val glow: Color,
     val glowStrength: Float,
     val ambient: Color,
+    val ambientTint: Color,
+    val coolTint: Color,
     val sheenColor: Color,
 )
 
@@ -62,9 +64,10 @@ private val DarkDepth = Depth(
     rimDark = Color(0x99000000),
     shadow = Color.Black,
     shadowAlpha = 0.55f,
-    glow = Color(0xFFE9A23B),
     glowStrength = 1f,
-    ambient = Color(0xFF0A100E),
+    ambientFallback = Color(0xFF0A100E),
+    ambientTint = Color(0x1FE9A23B),
+    coolTint = Color(0x331B6E7A),
     sheenColor = Color(0x1FFFFFFF),
 )
 
@@ -75,21 +78,32 @@ private val LightDepth = Depth(
     rimDark = Color(0x24000000),
     shadow = Color(0xFF5A6863),
     shadowAlpha = 0.30f,
-    glow = Color(0xFFD08A22),
     glowStrength = 0.5f,
-    ambient = Color(0xFFF7F8F7),
+    ambientFallback = Color(0xFFF7F8F7),
+    ambientTint = Color(0x14D08A22),
+    coolTint = Color(0x141B6E7A),
     sheenColor = Color(0x33FFFFFF),
 )
 
 /**
  * Depth values for the theme the app is actually showing, not the system setting —
  * the user can pick light or dark by hand, and the depth must follow that choice.
+ * The glow takes its colour from the palette's accent so it stays in key with
+ * whichever theme is on screen.
  */
 @Composable
 fun rememberDepth(): Depth {
     val scheme = MaterialTheme.colorScheme
     val dark = scheme.background.luminance() < 0.5f
-    return remember(dark, scheme) { if (dark) DarkDepth else LightDepth }
+    return remember(dark, scheme) {
+        val base = if (dark) DarkDepth else LightDepth
+        base.copy(
+            glow = scheme.primary,
+            ambient = scheme.background,
+            ambientTint = scheme.primary.copy(alpha = if (dark) 0.10f else 0.08f),
+            coolTint = scheme.secondary.copy(alpha = if (dark) 0.16f else 0.10f),
+        )
+    }
 }
 
 /**
@@ -226,7 +240,7 @@ fun AmbientBackground(
                 drawRect(depth.ambient)
                 drawRect(
                     Brush.radialGradient(
-                        0f to depth.glow.copy(alpha = 0.10f * depth.glowStrength),
+                        0f to depth.ambientTint,
                         1f to Color.Transparent,
                         center = Offset(size.width * 0.10f, size.height * 0.02f),
                         radius = size.maxDimension * 0.55f,
@@ -234,7 +248,7 @@ fun AmbientBackground(
                 )
                 drawRect(
                     Brush.radialGradient(
-                        0f to Color(0xFF1B6E7A).copy(alpha = 0.20f * depth.glowStrength),
+                        0f to depth.coolTint,
                         1f to Color.Transparent,
                         center = Offset(size.width * 0.95f, size.height * 0.80f),
                         radius = size.maxDimension * 0.62f,

@@ -87,6 +87,10 @@
     <string name="settings_theme_system">سیستم</string>
     <string name="settings_theme_light">روشن</string>
     <string name="settings_theme_dark">تاریک</string>
+    <string name="settings_theme_midnight">نیمه‌شب</string>
+    <string name="settings_theme_oled">سیاه OLED</string>
+    <string name="settings_theme_sand">شنی</string>
+    <string name="settings_theme_ocean">اقیانوسی</string>
     <string name="settings_language">زبان</string>
     <string name="settings_language_system">سیستم</string>
     <string name="settings_language_en">English</string>

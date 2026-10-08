@@ -1,6 +1,12 @@
 package com.aipn.connect.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -8,9 +14,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -23,6 +31,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,6 +42,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -46,8 +57,10 @@ fun SettingsScreen(viewModel: AppViewModel, onClose: () -> Unit, openUrl: (Strin
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val cards by viewModel.cards.collectAsStateWithLifecycle()
     var prompt by remember(settings.systemPrompt) { mutableStateOf(settings.systemPrompt) }
+    val depth = rememberDepth()
 
-    Column(Modifier.fillMaxSize()) {
+    AmbientBackground(depth) {
+        Column(Modifier.fillMaxSize()) {
         Row(
             Modifier
                 .fillMaxWidth()
@@ -144,18 +157,20 @@ fun SettingsScreen(viewModel: AppViewModel, onClose: () -> Unit, openUrl: (Strin
         } }
 
         item { SettingsCard(title = stringResource(R.string.settings_theme)) {
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                val options = listOf(
-                    ThemeChoice.SYSTEM to R.string.settings_theme_system,
-                    ThemeChoice.LIGHT to R.string.settings_theme_light,
-                    ThemeChoice.DARK to R.string.settings_theme_dark,
-                )
-                options.forEachIndexed { index, (choice, label) ->
-                    SegmentedButton(
+            // Seven palettes will not fit in one segmented row, and a swatch per
+            // theme is the only way to show what the picker is actually choosing.
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                for (choice in ThemeChoice.entries) {
+                    ThemeChip(
+                        label = stringResource(themeLabelOf(choice)),
+                        swatch = themeSwatch(choice),
                         selected = settings.theme == choice,
                         onClick = { viewModel.setTheme(choice) },
-                        shape = SegmentedButtonDefaults.itemShape(index, options.size),
-                    ) { Text(stringResource(label)) }
+                    )
                 }
             }
             Spacer(Modifier.height(10.dp))
@@ -231,7 +246,8 @@ fun SettingsScreen(viewModel: AppViewModel, onClose: () -> Unit, openUrl: (Strin
                 Text(stringResource(R.string.settings_source), style = MaterialTheme.typography.labelMedium)
             }
         } }
-    }
+        }
+        }
     }
 }
 
@@ -266,8 +282,8 @@ private fun DepthSlider(
         onValueChange = onValueChange,
         valueRange = valueRange,
         colors = SliderDefaults.colors(
-            thumbColor = Amber,
-            activeTrackColor = Amber,
+            thumbColor = MaterialTheme.colorScheme.primary,
+            activeTrackColor = MaterialTheme.colorScheme.primary,
             inactiveTrackColor = track,
         ),
     )
@@ -275,6 +291,68 @@ private fun DepthSlider(
 
 private fun roundToStep(value: Float, step: Float): Float =
     (value / step).let { kotlin.math.round(it) } * step
+
+@Composable
+private fun themeLabelOf(choice: ThemeChoice): Int = when (choice) {
+    ThemeChoice.SYSTEM -> R.string.settings_theme_system
+    ThemeChoice.LIGHT -> R.string.settings_theme_light
+    ThemeChoice.DARK -> R.string.settings_theme_dark
+    ThemeChoice.MIDNIGHT -> R.string.settings_theme_midnight
+    ThemeChoice.OLED -> R.string.settings_theme_oled
+    ThemeChoice.SAND -> R.string.settings_theme_sand
+    ThemeChoice.OCEAN -> R.string.settings_theme_ocean
+}
+
+/** Background, surface and accent of the palette this choice resolves to. */
+@Composable
+private fun themeSwatch(choice: ThemeChoice): List<Color> =
+    paletteFor(choice, systemDark = false).let { scheme ->
+        listOf(scheme.background, scheme.surfaceVariant, scheme.primary)
+    }
+
+@Composable
+private fun ThemeChip(
+    label: String,
+    swatch: List<Color>,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val shape = RoundedCornerShape(14.dp)
+    Row(
+        Modifier
+            .clip(shape)
+            .background(
+                if (selected) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surfaceVariant
+            )
+            .clickable(onClick = onClick)
+            .padding(start = 8.dp, end = 14.dp, top = 8.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            Modifier
+                .size(22.dp)
+                .clip(CircleShape)
+                .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+        ) {
+            swatch.forEach { color ->
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .background(color)
+                )
+            }
+        }
+        Spacer(Modifier.width(8.dp))
+        Text(
+            label,
+            style = MaterialTheme.typography.labelLarge,
+            color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
+            else MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
 
 @Composable
 private fun SwitchRow(
@@ -296,6 +374,17 @@ private fun SwitchRow(
             )
         }
         Spacer(Modifier.width(10.dp))
-        Switch(checked = checked, onCheckedChange = onChange)
+        Switch(
+            checked = checked,
+            onCheckedChange = onChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                checkedBorderColor = MaterialTheme.colorScheme.primary,
+                uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+            ),
+        )
     }
 }

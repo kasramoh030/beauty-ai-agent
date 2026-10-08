@@ -21,7 +21,8 @@ class App : Application() {
     }
 }
 
-enum class ThemeChoice { SYSTEM, LIGHT, DARK }
+/** SYSTEM follows the device; the rest are fixed palettes. */
+enum class ThemeChoice { SYSTEM, LIGHT, DARK, MIDNIGHT, OLED, SAND, OCEAN }
 
 /** Small, non-secret preferences: theme, language and generation settings. */
 class PreferenceStore(private val app: Application) {

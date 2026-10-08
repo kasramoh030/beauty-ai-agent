@@ -180,7 +180,12 @@ fun ChatDrawer(
                 .padding(horizontal = 16.dp, vertical = 13.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(Icons.Rounded.Key, contentDescription = null, tint = Amber, modifier = Modifier.size(18.dp))
+            Icon(
+                Icons.Rounded.Key,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp),
+            )
             Spacer(Modifier.width(10.dp))
             Text(stringResource(R.string.search_keys), style = MaterialTheme.typography.bodyLarge)
         }
@@ -199,8 +204,8 @@ private fun AmberPillButton(text: String, icon: androidx.compose.ui.graphics.vec
             .clip(CircleShape)
             .background(
                 androidx.compose.ui.graphics.Brush.linearGradient(
-                    0f to Amber.copy(alpha = 0.72f),
-                    1f to Amber,
+                    0f to MaterialTheme.colorScheme.primary.copy(alpha = 0.72f),
+                    1f to MaterialTheme.colorScheme.primary,
                     start = androidx.compose.ui.geometry.Offset(0f, 0f),
                     end = androidx.compose.ui.geometry.Offset(0f, 400f),
                 )
@@ -213,7 +218,11 @@ private fun AmberPillButton(text: String, icon: androidx.compose.ui.graphics.vec
     ) {
         Icon(icon, contentDescription = null, tint = Ink, modifier = Modifier.size(20.dp))
         Spacer(Modifier.width(8.dp))
-        Text(text, style = MaterialTheme.typography.titleMedium, color = Ink)
+        Text(
+            text,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onPrimary,
+        )
     }
 }
 
@@ -258,7 +267,7 @@ fun ModelSheet(
                     unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = Amber,
+                    cursorColor = MaterialTheme.colorScheme.primary,
                 ),
             )
             Spacer(Modifier.width(8.dp))
@@ -319,7 +328,7 @@ fun ModelSheet(
                             Icon(
                                 Icons.Rounded.Check,
                                 contentDescription = null,
-                                tint = Amber,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp),
                             )
                         }

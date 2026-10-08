@@ -317,7 +317,7 @@ private fun EmptyState(viewModel: AppViewModel, onOpenKeys: () -> Unit) {
                 Modifier
                     .raised(depth, pillShape, elevation = 10.dp, glow = 0.7f)
                     .clip(pillShape)
-                    .background(Amber.copy(alpha = 0.14f))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f))
                     .rimLight(depth, pillShape)
                     .clickable(onClick = onOpenKeys)
                     .padding(horizontal = 24.dp, vertical = 13.dp),
@@ -325,7 +325,7 @@ private fun EmptyState(viewModel: AppViewModel, onOpenKeys: () -> Unit) {
                 Text(
                     stringResource(R.string.add_key_for, suggested.name),
                     style = MaterialTheme.typography.titleMedium,
-                    color = Amber,
+                    color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -461,7 +461,7 @@ private fun Composer(
                 Icon(
                     Icons.Rounded.Image,
                     contentDescription = stringResource(R.string.chat_attach),
-                    tint = Amber,
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
         }
@@ -517,8 +517,8 @@ private fun Composer(
         } else {
             val sendFill = if (enabled) {
                 Brush.linearGradient(
-                    0f to Amber.copy(alpha = 0.55f),
-                    1f to Amber,
+                    0f to MaterialTheme.colorScheme.primary.copy(alpha = 0.55f),
+                    1f to MaterialTheme.colorScheme.primary,
                     start = Offset.Zero,
                     end = Offset(300f, 300f),
                 )
@@ -543,7 +543,7 @@ private fun Composer(
                 Icon(
                     Icons.Rounded.Send,
                     contentDescription = stringResource(R.string.chat_send),
-                    tint = Color(0xFF1A1206),
+                    tint = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         }

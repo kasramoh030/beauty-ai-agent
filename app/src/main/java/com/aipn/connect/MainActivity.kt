@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -45,6 +46,7 @@ import com.aipn.connect.ui.ApnTheme
 import com.aipn.connect.ui.AppViewModel
 import com.aipn.connect.ui.ChatDrawer
 import com.aipn.connect.ui.ChatScreen
+import com.aipn.connect.ui.isDarkTheme
 import com.aipn.connect.ui.KeysScreen
 import com.aipn.connect.ui.LocaleState
 import com.aipn.connect.ui.ModelSheet
@@ -76,18 +78,18 @@ fun ApnRoot() {
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
 
-    val darkSurface = when (settings.theme) {
-        ThemeChoice.LIGHT -> false
-        ThemeChoice.DARK -> true
-        ThemeChoice.SYSTEM -> isSystemInDarkTheme()
-    }
+    val systemDark = isSystemInDarkTheme()
+    val darkSurface = isDarkTheme(settings.theme, systemDark)
 
+    // Only the choices that mirror the system need AppCompat's night mode; the
+    // fixed palettes are applied by ApnTheme itself.
     LaunchedEffect(settings.theme) {
         AppCompatDelegate.setDefaultNightMode(
             when (settings.theme) {
                 ThemeChoice.LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
                 ThemeChoice.DARK -> AppCompatDelegate.MODE_NIGHT_YES
                 ThemeChoice.SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                else -> return@LaunchedEffect
             }
         )
     }
@@ -128,13 +130,7 @@ fun ApnRoot() {
         }
     }
 
-    ApnTheme(
-        darkTheme = when (settings.theme) {
-            ThemeChoice.LIGHT -> false
-            ThemeChoice.DARK -> true
-            ThemeChoice.SYSTEM -> isSystemInDarkTheme()
-        }
-    ) {
+    ApnTheme(choice = settings.theme) {
         ModalNavigationDrawer(
             drawerState = drawerState,
             gesturesEnabled = page == Page.CHAT,
@@ -157,6 +153,7 @@ fun ApnRoot() {
             Box(
                 Modifier
                     .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
                     .windowInsetsPadding(WindowInsets.safeDrawing)
             ) {
                 when (page) {

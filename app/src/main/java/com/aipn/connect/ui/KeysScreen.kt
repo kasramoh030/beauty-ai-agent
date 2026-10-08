@@ -168,7 +168,11 @@ private fun ProviderKeyCard(
                     onCheckedChange = onToggle,
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                        checkedTrackColor = Amber,
+                        checkedTrackColor = MaterialTheme.colorScheme.primary,
+                        checkedBorderColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        uncheckedBorderColor = MaterialTheme.colorScheme.outline,
                     ),
                 )
             }
@@ -183,7 +187,7 @@ private fun ProviderKeyCard(
                 Text(
                     stringResource(R.string.keys_get_key),
                     style = MaterialTheme.typography.labelMedium,
-                    color = Amber,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .clickable(onClick = onOpenUrl)
                         .padding(horizontal = 4.dp, vertical = 2.dp),
@@ -191,7 +195,7 @@ private fun ProviderKeyCard(
                 Icon(
                     Icons.Rounded.OpenInNew,
                     contentDescription = null,
-                    tint = Amber,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(14.dp),
                 )
             }
@@ -240,7 +244,9 @@ private fun ProviderKeyCard(
                         onClick = onTest,
                         enabled = card.key.isNotBlank() || card.provider.keyOptional,
                         shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Amber),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                    ),
                         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
                     ) {
                         Text(stringResource(R.string.keys_test), style = MaterialTheme.typography.labelLarge)
@@ -304,7 +310,7 @@ private fun DarkField(
             unfocusedContainerColor = MaterialTheme.colorScheme.surface,
             focusedBorderColor = MaterialTheme.colorScheme.outline,
             unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-            cursorColor = Amber,
+            cursorColor = MaterialTheme.colorScheme.primary,
             focusedTextColor = MaterialTheme.colorScheme.onSurface,
             unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
             focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -326,10 +332,10 @@ fun AmberButton(
         enabled = enabled,
         shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = Amber,
-            contentColor = Color(0xFF1A1206),
-            disabledContainerColor = Amber.copy(alpha = 0.35f),
-            disabledContentColor = Color(0xFF1A1206).copy(alpha = 0.7f),
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
         ),
     ) {
         Text(text, style = MaterialTheme.typography.labelLarge)

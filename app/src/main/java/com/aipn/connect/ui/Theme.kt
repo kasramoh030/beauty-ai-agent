@@ -1,11 +1,15 @@
 package com.aipn.connect.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Typography
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.TextStyle
@@ -99,6 +103,108 @@ private val LightColors = lightColorScheme(
     onError = Color.White,
 )
 
+/*
+ * Palettes. Every one of them sets the full set of roles the UI reads, so no
+ * component ever falls back to a stock M3 purple, and every one of them gives
+ * the dark schemes a light onSurface/onBackground — that is what keeps text and
+ * icons legible once the tree is wrapped in a Surface.
+ */
+
+/** Deep navy night: the amber accent reads warm against a cold sky. */
+private val MidnightColors = darkColorScheme(
+    primary = Color(0xFF8FB8FF),
+    onPrimary = Color(0xFF06172E),
+    primaryContainer = Color(0xFF1E3A63),
+    onPrimaryContainer = Color(0xFFD6E4FF),
+    secondary = Color(0xFF7FD8C4),
+    onSecondary = Color(0xFF04302A),
+    background = Color(0xFF0B1220),
+    onBackground = Color(0xFFEFF4FB),
+    surface = Color(0xFF111A2B),
+    onSurface = Color(0xFFEFF4FB),
+    surfaceVariant = Color(0xFF1A2436),
+    onSurfaceVariant = Color(0xFFA3B1C6),
+    outline = Color(0xFF33415A),
+    outlineVariant = Color(0xFF243149),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+)
+
+/** True black for OLED panels, with a hard white line for every piece of text. */
+private val OledColors = darkColorScheme(
+    primary = Color(0xFFF5C77E),
+    onPrimary = Color(0xFF1A1206),
+    primaryContainer = Color(0xFF3A2A0D),
+    onPrimaryContainer = Color(0xFFFFE3B0),
+    secondary = Color(0xFF6FE3B0),
+    onSecondary = Color(0xFF00281A),
+    background = Color(0xFF000000),
+    onBackground = Color(0xFFFFFFFF),
+    surface = Color(0xFF000000),
+    onSurface = Color(0xFFFFFFFF),
+    surfaceVariant = Color(0xFF141414),
+    onSurfaceVariant = Color(0xFFB4B4B4),
+    outline = Color(0xFF4A4A4A),
+    outlineVariant = Color(0xFF262626),
+    error = Color(0xFFFF9A8F),
+    onError = Color(0xFF3B0906),
+)
+
+/** Warm paper: cream surfaces with the amber accent left to do the talking. */
+private val SandColors = lightColorScheme(
+    primary = Color(0xFFA9681A),
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFFFE6C2),
+    onPrimaryContainer = Color(0xFF4A2C05),
+    secondary = Color(0xFF2F6B4F),
+    onSecondary = Color.White,
+    background = Color(0xFFFCF7EF),
+    onBackground = Color(0xFF1E1A14),
+    surface = Color(0xFFFFFBF4),
+    onSurface = Color(0xFF1E1A14),
+    surfaceVariant = Color(0xFFF3EADB),
+    onSurfaceVariant = Color(0xFF6B6154),
+    outline = Color(0xFFD5C9B6),
+    outlineVariant = Color(0xFFE9E0D1),
+    error = Color(0xFFB3261E),
+    onError = Color.White,
+)
+
+/** Cool sky: a pale blue-white canvas, the light counterpart to Midnight. */
+private val OceanColors = lightColorScheme(
+    primary = Color(0xFF17607F),
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFC9E7F5),
+    onPrimaryContainer = Color(0xFF06303F),
+    secondary = Color(0xFF166B5A),
+    onSecondary = Color.White,
+    background = Color(0xFFF3F8FB),
+    onBackground = Color(0xFF12191C),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF12191C),
+    surfaceVariant = Color(0xFFE7F0F5),
+    onSurfaceVariant = Color(0xFF51646D),
+    outline = Color(0xFFC2D3DB),
+    outlineVariant = Color(0xFFDEE9EE),
+    error = Color(0xFFB3261E),
+    onError = Color.White,
+)
+
+/** Every palette, keyed by the choice stored in preferences. */
+fun paletteFor(choice: ThemeChoice, systemDark: Boolean): ColorScheme = when (choice) {
+    ThemeChoice.SYSTEM -> if (systemDark) DarkColors else LightColors
+    ThemeChoice.LIGHT -> LightColors
+    ThemeChoice.DARK -> DarkColors
+    ThemeChoice.MIDNIGHT -> MidnightColors
+    ThemeChoice.OLED -> OledColors
+    ThemeChoice.SAND -> SandColors
+    ThemeChoice.OCEAN -> OceanColors
+}
+
+/** Whether [choice] resolves to a dark canvas, whatever the system is doing. */
+fun isDarkTheme(choice: ThemeChoice, systemDark: Boolean): Boolean =
+    paletteFor(choice, systemDark).background.luminance() < 0.5f
+
 /** Vazirmatn - the geometric Persian face used by the reference design. */
 val Vazir = FontFamily(
     Font(R.font.vazirmatnregular, FontWeight.Normal),
@@ -179,12 +285,24 @@ val CodeTextStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 13.s
 
 @Composable
 fun ApnTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    choice: ThemeChoice = ThemeChoice.SYSTEM,
     content: @Composable () -> Unit,
 ) {
+    val scheme = paletteFor(choice, isSystemInDarkTheme())
     MaterialTheme(
-        colorScheme = if (darkTheme) DarkColors else LightColors,
+        colorScheme = scheme,
         typography = AppTypography,
-        content = content,
-    )
+    ) {
+        // A Surface is not optional decoration here: it is what supplies
+        // LocalContentColor. Without it every Text and Icon that does not name a
+        // colour falls back to Color.Black, which is invisible on the dark
+        // palettes and made the settings page black-on-black in the light one.
+        Surface(
+            color = scheme.background,
+            contentColor = scheme.onBackground,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            content()
+        }
+    }
 }

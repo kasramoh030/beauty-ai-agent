@@ -4,7 +4,6 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
-        <!-- Painted by the Compose Surface; this only covers the frame before it. -->
         <item name="android:windowBackground">@color/apn_window</item>
     </style>
 </resources>
