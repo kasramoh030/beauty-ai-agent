@@ -16,6 +16,8 @@ class App : Application() {
                 ThemeChoice.LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
                 ThemeChoice.DARK -> AppCompatDelegate.MODE_NIGHT_YES
                 ThemeChoice.SYSTEM -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                // Fixed palettes are applied by ApnTheme, not by the platform.
+                else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
             }
         )
     }
