@@ -1,7 +1,6 @@
 package com.aipn.connect.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,8 +29,6 @@ import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -51,11 +48,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.ClipboardManager
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aipn.connect.R
@@ -88,20 +82,15 @@ fun KeysScreen(
         items(keys, key = { it.provider.id }) { status ->
             KeyCard(
                 status = status,
+                keyTail = viewModel.vault.keyTail(status.provider.id),
                 isPersian = isPersian,
-                revealKey = revealing && status.provider.id == editing?.id,
-                onRevealToggle = { revealing = !revealing },
                 onTest = { viewModel.testKey(status.provider.id) },
-                onEdit = { editing = status.provider; revealing = false },
+                onEdit = { editing = status.provider },
                 onDelete = { deleting = status.provider },
                 onToggle = { viewModel.setEnabled(status.provider.id, it) },
                 onPickModel = { viewModel.setModel(status.provider.id, it) },
+                onRefreshModels = { viewModel.loadModels(status.provider.id) },
                 onOpenUrl = openUrl,
-                onCopyKey = {
-                    viewModel.vault.apiKey(status.provider.id)?.let {
-                        clipboard.setText(AnnotatedString(it))
-                    }
-                },
             )
         }
 
@@ -111,7 +100,7 @@ fun KeysScreen(
     editing?.let { provider ->
         KeyDialog(
             provider = provider,
-            existing = viewModel.vault.keyTail(provider.id) ?: "",
+            hasKey = viewModel.vault.hasKey(provider.id),
             onDismiss = { editing = null },
             onSave = { key, account ->
                 viewModel.setKey(provider.id, key)
@@ -133,7 +122,9 @@ fun KeysScreen(
                 }) { Text(stringResource(R.string.keys_delete)) }
             },
             dismissButton = {
-                TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.key_dialog_cancel)) }
+                TextButton(onClick = { deleting = null }) {
+                    Text(stringResource(R.string.key_dialog_cancel))
+                }
             },
         )
     }
@@ -142,16 +133,15 @@ fun KeysScreen(
 @Composable
 private fun KeyCard(
     status: KeyStatus,
+    keyTail: String?,
     isPersian: Boolean,
-    revealKey: Boolean,
-    onRevealToggle: () -> Unit,
     onTest: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onToggle: (Boolean) -> Unit,
     onPickModel: (String) -> Unit,
+    onRefreshModels: () -> Unit,
     onOpenUrl: (String) -> Unit,
-    onCopyKey: () -> Unit,
 ) {
     val provider = status.provider
     var modelsOpen by remember { mutableStateOf(false) }
@@ -177,12 +167,10 @@ private fun KeyCard(
                         style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
-                        if (status.hasKey) {
-                            if (revealKey) viewModelKeyMasked(provider) else "••••••••"
-                        } else if (provider.keyOptional) {
-                            stringResource(R.string.keys_no_key_needed)
-                        } else {
-                            stringResource(R.string.keys_empty)
+                        when {
+                            status.hasKey -> keyTail ?: "••••••••"
+                            provider.keyOptional -> stringResource(R.string.keys_no_key_needed)
+                            else -> stringResource(R.string.keys_empty)
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -215,19 +203,11 @@ private fun KeyCard(
                     Text(stringResource(R.string.keys_test))
                 }
 
-                if (status.hasKey) {
-                    OutlinedChip(
-                        text = stringResource(R.string.keys_edit),
-                        icon = Icons.Rounded.Edit,
-                        onClick = onEdit,
-                    )
-                } else if (!provider.keyOptional) {
-                    OutlinedChip(
-                        text = stringResource(R.string.keys_add),
-                        icon = Icons.Rounded.Add,
-                        onClick = onEdit,
-                    )
-                }
+                TonalChip(
+                    text = if (status.hasKey) stringResource(R.string.keys_edit) else stringResource(R.string.keys_add),
+                    icon = if (status.hasKey) Icons.Rounded.Edit else Icons.Rounded.Add,
+                    onClick = onEdit,
+                )
             }
 
             Spacer(Modifier.height(8.dp))
@@ -236,8 +216,9 @@ private fun KeyCard(
                 AssistChip(
                     onClick = { onOpenUrl(provider.keyUrl) },
                     label = { Text(stringResource(R.string.keys_get_free)) },
-                    leadingIcon = { Icon(Icons.Rounded.OpenInNew, contentDescription = null, Modifier.size(16.dp)) },
-                    colors = AssistChipDefaults.assistChipColors(),
+                    leadingIcon = {
+                        Icon(Icons.Rounded.OpenInNew, contentDescription = null, Modifier.size(16.dp))
+                    },
                 )
                 AssistChip(
                     onClick = { onOpenUrl(provider.docsUrl) },
@@ -247,20 +228,19 @@ private fun KeyCard(
 
             if (status.result != null) {
                 Spacer(Modifier.height(8.dp))
+                val ok = status.result.contains("models")
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        if (status.result.contains("models")) Icons.Rounded.Check else Icons.Rounded.Warning,
+                        if (ok) Icons.Rounded.Check else Icons.Rounded.Warning,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = if (status.result.contains("models")) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.error,
+                        tint = if (ok) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
                         status.result,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (status.result.contains("models")) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.error,
+                        color = if (ok) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                     )
                 }
             }
@@ -270,14 +250,16 @@ private fun KeyCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     stringResource(R.string.settings_model) + ": " +
-                        (status.model.ifBlank { provider.defaultModel }),
+                        status.model.ifBlank { provider.defaultModel },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Start,
                 )
                 TextButton(onClick = { modelsOpen = !modelsOpen }) {
-                    Text(if (modelsOpen) stringResource(R.string.common_close) else stringResource(R.string.settings_model_pick))
+                    Text(
+                        if (modelsOpen) stringResource(R.string.common_close)
+                        else stringResource(R.string.settings_model_pick)
+                    )
                 }
             }
 
@@ -292,7 +274,7 @@ private fun KeyCard(
                             Text(model, style = MaterialTheme.typography.bodyMedium)
                         }
                     }
-                    TextButton(onClick = onEdit) {
+                    TextButton(onClick = onRefreshModels) {
                         Text(stringResource(R.string.settings_model_refresh))
                     }
                 }
@@ -308,12 +290,15 @@ private fun KeyCard(
             }
 
             Spacer(Modifier.height(4.dp))
-            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
                 if (status.hasKey) {
-                    IconButton(onClick = onRevealToggle) {
+                    IconButton(onClick = onEdit) {
                         Icon(
-                            if (revealKey) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                            contentDescription = null,
+                            Icons.Rounded.Visibility,
+                            contentDescription = stringResource(R.string.keys_edit),
                             modifier = Modifier.size(18.dp),
                         )
                     }
@@ -331,7 +316,7 @@ private fun KeyCard(
 }
 
 @Composable
-private fun OutlinedChip(text: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+private fun TonalChip(text: String, icon: ImageVector, onClick: () -> Unit) {
     FilledTonalButton(onClick = onClick) {
         Icon(icon, contentDescription = null, Modifier.size(16.dp))
         Spacer(Modifier.width(6.dp))
@@ -342,7 +327,7 @@ private fun OutlinedChip(text: String, icon: androidx.compose.ui.graphics.vector
 @Composable
 private fun KeyDialog(
     provider: Provider,
-    existing: String,
+    hasKey: Boolean,
     onDismiss: () -> Unit,
     onSave: (String, String) -> Unit,
 ) {
@@ -351,11 +336,16 @@ private fun KeyDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (existing.isBlank()) stringResource(R.string.key_dialog_new) else stringResource(R.string.key_dialog_edit)) },
+        title = {
+            Text(
+                if (hasKey) stringResource(R.string.key_dialog_edit)
+                else stringResource(R.string.key_dialog_new)
+            )
+        },
         text = {
             Column {
                 Text(
-                    "${stringResource(R.string.key_dialog_provider)}: ${provider.name}",
+                    stringResource(R.string.key_dialog_provider) + ": " + provider.name,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -388,9 +378,6 @@ private fun KeyDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.key_dialog_cancel)) }
-        },
-    )
-}onClick = onDismiss) { Text(stringResource(R.string.key_dialog_cancel)) }
         },
     )
 }

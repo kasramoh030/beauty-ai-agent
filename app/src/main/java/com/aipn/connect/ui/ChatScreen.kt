@@ -1,12 +1,6 @@
 package com.aipn.connect.ui
 
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.Visibility
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,13 +10,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
@@ -34,7 +28,6 @@ import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -58,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
@@ -76,7 +70,7 @@ fun ChatScreen(
 ) {
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val sending by viewModel.sending.collectAsStateWithLifecycle()
-    val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val keys by viewModel.keys.collectAsStateWithLifecycle()
 
     var input by remember { mutableStateOf("") }
     var attachedImage by remember { mutableStateOf<Pair<String, String>?>(null) }
@@ -84,15 +78,7 @@ fun ChatScreen(
     val scope = rememberCoroutineScope()
     val clipboard = LocalClipboardManager.current
 
-    val hasAnyProvider = viewModel.vault.enabledIds().isNotEmpty() || com.aipn.connect.data.Providers.zeroConfig.isNotEmpty()
-
-    val pickImage = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        if (uri != null) {
-            scope.launch { attachedImage = viewModel.prepareImage(uri) }
-        }
-    }
+    val hasAnyProvider = keys.any { it.enabled && (it.hasKey || it.provider.keyOptional) }
 
     LaunchedEffect(messages.size, sending) {
         val target = messages.size - 1
@@ -111,7 +97,9 @@ fun ChatScreen(
 
         LazyColumn(
             state = listState,
-            modifier = Modifier.weight(1f).fillMaxWidth(),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -133,7 +121,9 @@ fun ChatScreen(
             onInputChange = { input = it },
             sending = sending,
             hasImage = attachedImage != null,
-            onAttach = { pickImage.launch("image/*") },
+            onImagePicked = { uri ->
+                scope.launch { attachedImage = viewModel.prepareImage(uri) }
+            },
             onClearImage = { attachedImage = null },
             onSend = {
                 viewModel.send(input, attachedImage)
@@ -148,7 +138,9 @@ fun ChatScreen(
 @Composable
 private fun EmptyState() {
     Column(
-        Modifier.fillMaxWidth().padding(top = 48.dp, bottom = 24.dp),
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 48.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
@@ -175,9 +167,15 @@ private fun EmptyState() {
 
 @Composable
 private fun NoKeysBanner(onOpenKeys: () -> Unit) {
-    SurfaceBanner {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+    ) {
         Row(
-            Modifier.fillMaxWidth().padding(14.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
@@ -195,15 +193,6 @@ private fun NoKeysBanner(onOpenKeys: () -> Unit) {
 }
 
 @Composable
-private fun SurfaceBanner(content: @Composable () -> Unit) {
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.secondaryContainer)
-    ) { content() }
-}
-
-@Composable
 private fun MessageBubble(
     message: UiMessage,
     onCopy: () -> Unit,
@@ -216,7 +205,7 @@ private fun MessageBubble(
         horizontalAlignment = if (isUser) Alignment.End else Alignment.Start,
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth(0.92f),
+            modifier = Modifier.fillMaxWidth(0.94f),
             colors = CardDefaults.cardColors(
                 containerColor = if (isUser) MaterialTheme.colorScheme.primaryContainer
                 else MaterialTheme.colorScheme.surface
@@ -225,25 +214,27 @@ private fun MessageBubble(
         ) {
             Column(Modifier.padding(14.dp)) {
                 if (message.imageData != null) {
-                    val bytes = remember(message.imageData) {
-                        runCatching { Base64.getDecoder().decode(message.imageData) }.getOrNull()
+                    val image = remember(message.imageData) {
+                        runCatching {
+                            Base64.getDecoder().decode(message.imageData).toBitmap().asImageBitmap()
+                        }.getOrNull()
                     }
-                    if (bytes != null) {
-                        Image(
-                            bitmap = remember(bytes) { bytes.toBitmap() },
+                    if (image != null) {
+                        androidx.compose.foundation.Image(
+                            bitmap = image,
                             contentDescription = null,
                             contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn()
-                                .padding(bottom = 8.dp)
+                                .heightIn(max = 260.dp)
                                 .clip(RoundedCornerShape(10.dp)),
                         )
+                        Spacer(Modifier.height(8.dp))
                     }
                 }
 
-                if (message.pending) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                when {
+                    message.pending -> Row(verticalAlignment = Alignment.CenterVertically) {
                         CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                         Spacer(Modifier.width(10.dp))
                         Text(
@@ -252,14 +243,14 @@ private fun MessageBubble(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                } else if (message.error != null) {
-                    Text(
+
+                    message.error != null -> Text(
                         stringResource(R.string.chat_failed) + ": " + message.error,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error,
                     )
-                } else {
-                    MarkdownText(message.text)
+
+                    else -> MarkdownText(message.text)
                 }
 
                 if (!isUser && message.providerName != null) {
@@ -275,7 +266,7 @@ private fun MessageBubble(
                         Text(
                             buildString {
                                 append(stringResource(R.string.chat_answered_by, message.providerName))
-                                if (!message.model.isNullOrBlank()) append(" · ${message.model}")
+                                if (!message.model.isNullOrBlank()) append(" · " + message.model)
                             },
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -295,10 +286,7 @@ private fun MessageBubble(
         }
 
         if (!isUser && !message.pending && message.text.isNotBlank()) {
-            Row(
-                Modifier.padding(top = 2.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+            Row(Modifier.padding(top = 2.dp), verticalAlignment = Alignment.CenterVertically) {
                 TinyAction(Icons.Rounded.ContentCopy, stringResource(R.string.chat_copy), onCopy)
                 TinyAction(Icons.Rounded.Refresh, stringResource(R.string.chat_regenerate), onRegenerate)
                 TinyAction(Icons.Rounded.DeleteOutline, stringResource(R.string.common_close), onDelete)
@@ -308,11 +296,7 @@ private fun MessageBubble(
 }
 
 @Composable
-private fun TinyAction(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit,
-) {
+private fun TinyAction(icon: ImageVector, label: String, onClick: () -> Unit) {
     IconButton(onClick = onClick, modifier = Modifier.size(34.dp)) {
         Icon(icon, contentDescription = label, modifier = Modifier.size(16.dp))
     }
@@ -324,11 +308,15 @@ private fun Composer(
     onInputChange: (String) -> Unit,
     sending: Boolean,
     hasImage: Boolean,
-    onAttach: () -> Unit,
+    onImagePicked: (android.net.Uri) -> Unit,
     onClearImage: () -> Unit,
     onSend: () -> Unit,
     onStop: () -> Unit,
 ) {
+    val picker = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri -> if (uri != null) onImagePicked(uri) }
+
     Column(
         Modifier
             .fillMaxWidth()
@@ -340,12 +328,14 @@ private fun Composer(
                 onClick = onClearImage,
                 label = { Text(stringResource(R.string.chat_attach)) },
                 leadingIcon = { Icon(Icons.Rounded.Image, contentDescription = null, Modifier.size(16.dp)) },
-                trailingIcon = { Icon(Icons.Rounded.DeleteOutline, contentDescription = null, Modifier.size(16.dp)) },
+                trailingIcon = {
+                    Icon(Icons.Rounded.DeleteOutline, contentDescription = null, Modifier.size(16.dp))
+                },
             )
             Spacer(Modifier.height(6.dp))
         }
         Row(verticalAlignment = Alignment.Bottom) {
-            IconButton(onClick = onAttach, enabled = !sending) {
+            IconButton(onClick = { picker.launch("image/*") }, enabled = !sending) {
                 Icon(Icons.Rounded.Image, contentDescription = stringResource(R.string.chat_attach))
             }
             OutlinedTextField(
